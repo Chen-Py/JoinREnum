@@ -1,2 +1,5 @@
 # REnumWCO
-Worst Case Optimized Algorithm for Random Order Enumeration
+Run test
+```bash
+bash test.sh
+```
