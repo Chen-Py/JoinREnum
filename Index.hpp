@@ -119,17 +119,32 @@ class Index {
             return sample;
         }
 
-        pair<bool, vector<int> > randomAccess(Bucket B, int k, int AGM = -1){
+        // pair<bool, vector<int> > randomAccess(Bucket B, int k, int AGM = -1){
+        //     if(AGM < 0)AGM = AGMforBucket(B);
+        //     if(B.getSplitDim() == B.getDim())return make_pair(true, B.getLowerBound());
+        //     vector<pair<Bucket, int> > sons = split(B);
+        //     for(int i = 0; i < sons.size(); i++){
+        //         pair<Bucket, int> son = sons[i];
+        //         if(k <= son.second)return randomAccess(son.first, k, son.second);
+        //         k -= son.second;
+        //         AGM -= son.second;
+        //     }
+        //     return make_pair(false, vector<int> {AGM - k});
+        // }
+
+        pair<bool, vector<int> > randomAccess(Bucket B, int k, int offset = 0, int AGM = -1){
             if(AGM < 0)AGM = AGMforBucket(B);
+            // cout << "BucketInterval: " << offset + 1 << " " << offset + AGM << endl;
             if(B.getSplitDim() == B.getDim())return make_pair(true, B.getLowerBound());
             vector<pair<Bucket, int> > sons = split(B);
+            int temp = 0;
             for(int i = 0; i < sons.size(); i++){
                 pair<Bucket, int> son = sons[i];
-                if(k <= son.second)return randomAccess(son.first, k, son.second);
-                k -= son.second;
-                AGM -= son.second;
+                if(k - offset - temp <= son.second)return randomAccess(son.first, k, offset + temp, son.second);
+                // k -= son.second;
+                temp += son.second;
             }
-            return make_pair(false, vector<int> {AGM - k});
+            return make_pair(false, vector<int> {offset + temp + 1, offset + AGM});
         }
 
         void enumeration(Bucket B, int AGM = -1){

@@ -106,10 +106,7 @@ class BanPickTree {
             return;
         }
         int pick(){
-            if(remaining() == 0) return 0;
-            int s = G();
-            ban(s, s);
-            return s;
+            return remaining() ? G() : 0;
         }
         int remaining(){
             return H - (root ? root->take : 0);

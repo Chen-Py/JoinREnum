@@ -5,6 +5,7 @@
 #include "Parcel.h"
 #include "Index.hpp"
 #include "ReadConfig.hpp"
+#include "BanPickTree.hpp"
 using namespace std;
 
 int main() {
@@ -30,24 +31,41 @@ int main() {
     //     }
     //     cout << endl;
     // }
-    for(int i = 1; i <= idx.AGM(); i++) {
-            pair<bool, vector<int> > res = idx.randomAccess(idx.getFullBucket(), i);
-            cout << i << ": ";
+
+
+    int cntsuccess = 0, cntfail = 0;
+    // for(int i = 1; i <= idx.AGM(); i++) {
+    //         pair<bool, vector<int> > res = idx.randomAccess(idx.getFullBucket(), i);
+    //         cout << i << ": ";
+    //         cout << res.first << "::";
+    //         for(int j = 0; j < res.second.size(); j++) {
+    //             cout << res.second[j] << ",";
+    //         }
+    //         cout << endl;
+    //         if(!res.first) {
+    //             cntfail++;
+    //             i = res.second[1];
+    //         }
+    //         else cntsuccess++;
+    // }
+
+    BanPickTree bp(idx.AGM());
+    while(bp.remaining()){
+        int s = bp.pick();
+        pair<bool, vector<int> > res = idx.randomAccess(idx.getFullBucket(), s);
+        if(res.first){
+            cout << s << ": ";
             cout << res.first << "::";
             for(int j = 0; j < res.second.size(); j++) {
                 cout << res.second[j] << ",";
             }
             cout << endl;
-            if(!res.first) {
-                i += res.second[0];
-            }
         }
-    // auto start = chrono::high_resolution_clock::now();
-    // tbl.loadFromFile(filenames.at("_PS_"), numlines.at("_PS_"), {0, 1});
-    
-    // auto stop = chrono::high_resolution_clock::now();
-    // auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
-    // cout << "Time Taken: " << duration.count() << " milliseconds" << endl;
+        else cout << "Fail" << endl;
+        if(res.first) bp.ban(s,s), cntsuccess++;
+        else bp.ban(res.second[0], res.second[1]), cntfail++;
+    }
+    cout << "Success: " << cntsuccess << " Fail: " << cntfail << endl;
     
     return 0;
 }
