@@ -96,6 +96,12 @@ class BanPickTree {
         }
     public:
         BanPickTree(int H): H(H) {}
+        int getTotal(){
+            return H;
+        }
+        double getPercentage(){
+            return 1.0 - 1.0 * remaining() / H;
+        }
         void ban(int low, int high){
             // H = max(H, high);
             if(root == NULL){

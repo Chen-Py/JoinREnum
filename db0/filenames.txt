@@ -1,0 +1,3 @@
+R db/R.tbl
+S db/S.tbl
+T db/T.tbl

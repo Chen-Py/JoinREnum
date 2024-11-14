@@ -1,10 +1,11 @@
 from random import randint
+import numpy as np
 filenames = {}
 numlines = {}
 numvars = {}
-dbsize = 20
+dbsize = 1000
 lowerBound = 1
-upperBound = 10
+upperBound = 30
 
 with open("db/filenames.txt", "r") as f:
     for line in f:
@@ -30,11 +31,25 @@ def gen_data(relation):
     filename = filenames[relation]
     n = numlines[relation]
     k = numvars[relation]
+    S = set()
     with open(filename, "w") as f:
         for i in range(n):
             line = []
             for j in range(k):
                 line.append(str(int(randint(lowerBound, upperBound))))
+            while tuple(line) in S:
+                line = []
+                for j in range(k):
+                    line.append(str(int(randint(lowerBound, upperBound))))
+                    # normal distribution
+                    # temp = np.random.normal((upperBound+lowerBound) / 2, (upperBound-lowerBound) / 6)
+                    # temp = np.round(temp).astype(int)
+                    # # if temp < lowerBound:
+                    # #     temp = lowerBound
+                    # # if temp > upperBound:
+                    # #     temp = upperBound
+                    # line.append(str(temp))
+            S.add(tuple(line))
             f.write("|".join(line) + "\n")
 
 for relation in filenames:

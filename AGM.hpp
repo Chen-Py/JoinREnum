@@ -143,6 +143,13 @@ class Query{
 
         double AGM(vector<int> cars = {}){
             for (int i = 0; i < cars.size(); i++)if(cars[i] <= 0)return 0;
+            if(false){
+                double ans = 1;
+                for(int i = 0; i < relations.size(); i++){
+                    ans *= pow(cars[i], 0.5);
+                }
+                return ans;
+            }
             initLP();
             updateCars(cars);
 
