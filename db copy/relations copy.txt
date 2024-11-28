@@ -1,7 +1,0 @@
-R1(V1,V2,V3)
-R2(V2,V5)
-R3(V1,V4,V6,V7,V8)
-R4(V3,V4,V7)
-
-
-R_1(P, Q, R), R_2(Q, S, T), R_3(R, T, U), R_4(P, S, V), R_5(U, V, W), R_6(W, P, Q)

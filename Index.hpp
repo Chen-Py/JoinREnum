@@ -6,11 +6,11 @@ using namespace std;
 
 class Index {
     private:
-        Query q;
         vector<Table<Parcel> > tables;
         Bucket FB;
         
     public:
+        Query q;
         Index() {};
         Index(Query q) : q(q) {};
         void preProcessing(const unordered_map<string, vector<string> >& relations, const unordered_map<string, string>& filenames, const unordered_map<string, int>& numLines) {
@@ -60,7 +60,8 @@ class Index {
                 }
                 cardinalities.push_back(tables[i].count(lower_bound, upper_bound));
             }
-            return int(q.AGM(cardinalities));
+            double ans = q.AGM(cardinalities);
+            return ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans);
         }
 
         vector<pair<Bucket, int> > split(Bucket B){

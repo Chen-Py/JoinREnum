@@ -2,5 +2,3 @@ R1 db/R1.tbl
 R2 db/R2.tbl
 R3 db/R3.tbl
 R4 db/R4.tbl
-R5 db/R5.tbl
-R6 db/R6.tbl

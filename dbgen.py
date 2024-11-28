@@ -3,9 +3,10 @@ import numpy as np
 filenames = {}
 numlines = {}
 numvars = {}
-dbsize = 1000
+dbsize = 4000
 lowerBound = 1
-upperBound = 30
+# upperBound = dbsize // 10
+upperBound = 20
 
 with open("db/filenames.txt", "r") as f:
     for line in f:
@@ -15,6 +16,7 @@ with open("db/filenames.txt", "r") as f:
 with open("db/numlines.txt", "r") as f:
     for line in f:
         line = line.strip().split(" ")
+        print(line[0], line[1])
         numlines[line[0]] = int(line[1]) if int(line[1]) > 0 else dbsize
 
 with open("db/relations.txt", "r") as f:

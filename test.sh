@@ -1,1 +1,1 @@
-g++ test.cpp -o test -lglpk && ./test
+numactl --cpubind=0 --membind=0 g++ -O3 test.cpp -o test -lglpk && numactl --cpubind=0 --membind=0 ./test

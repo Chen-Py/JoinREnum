@@ -7,6 +7,9 @@
 using namespace std;
 class Query{
     private:
+    
+        // std::chrono::high_resolution_clock::time_point start;
+        // std::chrono::duration<double> elapsed;
         vector<string> relationNames;
         vector<vector<string> > relationVars;
         map<string, int> variables;
@@ -61,6 +64,7 @@ class Query{
             }
         }
     public:
+        // double lpinitTime = 0;
         Query(){}
 
         Query(vector<string> relationNames, vector<vector<string> > relations, vector<int> cardinalities = {}){
@@ -143,20 +147,48 @@ class Query{
 
         double AGM(vector<int> cars = {}){
             for (int i = 0; i < cars.size(); i++)if(cars[i] <= 0)return 0;
-            if(false){
-                double ans = 1;
-                for(int i = 0; i < relations.size(); i++){
-                    ans *= pow(cars[i], 0.5);
-                }
-                return ans;
-            }
+            // if(false){
+            //     double ans = 1;
+            //     for(int i = 0; i < relations.size(); i++){
+            //         ans *= pow(cars[i], 0.5);
+            //     }
+            //     return ans;
+            // }
+            // if(true){
+            //     double ans = 1;
+            //     ans *= cars[0];
+            //     ans *= cars[3];
+            //     ans *= cars[5];
+            //     return ans;
+            // }
+            // if(false){
+            //     double ans = 1;
+            //     for(int i = 0; i < 4; i++){
+            //         ans *= pow(cars[i], 0.5);
+            //     }
+            //     ans *= cars[4];
+            //     return ans;
+            // }
+            // if(true){
+            //     return cars[2] * cars[3] * cars[5];
+            // }
+            if(false) return cars[0] * pow(cars[1], 0.5) * pow(cars[2], 0.5) * pow(cars[3], 0.5);
+            // start = std::chrono::high_resolution_clock::now();
             initLP();
+            // elapsed = std::chrono::high_resolution_clock::now() - start;
+            // lpinitTime += elapsed.count();
             updateCars(cars);
 
             glp_smcp params;
             glp_init_smcp(&params);
             params.msg_lev = GLP_MSG_OFF;
             glp_simplex(lp, &params);
+            
+            // double x1 = glp_get_col_prim(lp, 1);
+            // double x2 = glp_get_col_prim(lp, 2);
+            // double x3 = glp_get_col_prim(lp, 3);
+            // double x4 = glp_get_col_prim(lp, 4);
+            // cout << x1 << " " << x2 << " " << x3 << " " << x4 << endl;
 
             double res = glp_get_obj_val(lp);
 
