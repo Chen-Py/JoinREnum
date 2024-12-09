@@ -5,7 +5,7 @@ Generate the database
 python dbgen.py
 ```
 
-Run the tests
+Run the Experiment
 ```bash
 bash test.sh
 ```
