@@ -1,11 +1,11 @@
 # JoinREnum
 
-Generate dataset
+Generate the database
 ```bash
 python dbgen.py
 ```
 
-Run test
+Run the tests
 ```bash
 bash test.sh
 ```
