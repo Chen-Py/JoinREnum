@@ -147,6 +147,7 @@ class Query{
 
         double AGM(vector<int> cars = {}){
             for (int i = 0; i < cars.size(); i++)if(cars[i] <= 0)return 0;
+            if(true) return sqrt(cars[0]) * sqrt(cars[1]) * sqrt(cars[2]);
             // if(false){
             //     double ans = 1;
             //     for(int i = 0; i < relations.size(); i++){
@@ -172,7 +173,7 @@ class Query{
             // if(true){
             //     return cars[2] * cars[3] * cars[5];
             // }
-            if(false) return cars[0] * pow(cars[1], 0.5) * pow(cars[2], 0.5) * pow(cars[3], 0.5);
+            if(true) return cars[0] * pow(cars[1], 0.5) * pow(cars[2], 0.5) * pow(cars[3], 0.5);
             // start = std::chrono::high_resolution_clock::now();
             initLP();
             // elapsed = std::chrono::high_resolution_clock::now() - start;

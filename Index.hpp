@@ -7,10 +7,19 @@ using namespace std;
 class Index {
     private:
         vector<Table<Parcel> > tables;
+        map<Bucket, vector<pair<Bucket, int> > > bucketSplitCache = map<Bucket, vector<pair<Bucket, int> > >();
         Bucket FB;
         
     public:
         Query q;
+        int cntCacheHit = 0;
+        int cntTotalCall = 0;
+        int cntAGMCall = 0;
+        int cntSplitCall = 0;
+        double totalAGMTime = 0;
+        double totalCountOracleTime = 0;
+        double totalSplitTime = 0;
+        double totalCacheHitTime = 0;
         Index() {};
         Index(Query q) : q(q) {};
         void preProcessing(const unordered_map<string, vector<string> >& relations, const unordered_map<string, string>& filenames, const unordered_map<string, int>& numLines) {
@@ -49,6 +58,8 @@ class Index {
         }
 
         int AGMforBucket(Bucket B) {
+            cntAGMCall++;
+            // record total AGM time
             int relnum = q.getRelations().size();
             vector<int> cardinalities;
             for(int i = 0; i < relnum; i++) {
@@ -58,19 +69,27 @@ class Index {
                     lower_bound.push_back(B.getLowerBound()[q.getRelations()[i][j]]);
                     upper_bound.push_back(B.getUpperBound()[q.getRelations()[i][j]]);
                 }
+                // record total count oracle time
+                auto startCountOracle = chrono::high_resolution_clock::now();
                 cardinalities.push_back(tables[i].count(lower_bound, upper_bound));
+                auto endCountOracle = chrono::high_resolution_clock::now();
+                chrono::duration<double> elapsedCountOracle = endCountOracle - startCountOracle;
+                totalCountOracleTime += elapsedCountOracle.count();
             }
+            
+            auto startAGM = chrono::high_resolution_clock::now();
             double ans = q.AGM(cardinalities);
+            auto endAGM = chrono::high_resolution_clock::now();
+            chrono::duration<double> elapsedAGM = endAGM - startAGM;
+            totalAGMTime += elapsedAGM.count();
             return ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans);
         }
 
         vector<pair<Bucket, int> > split(Bucket B){
+            cntSplitCall++;
             int splitDim = B.getSplitDim();
             int AGM = AGMforBucket(B);
             if(AGM == 0)return {};
-            // cout <<"SPLIT:";
-            // B.print();
-            // cout << "SPLITDIM: " << splitDim << endl;
             
             long long l = B.getLowerBound()[splitDim], r = B.getUpperBound()[splitDim], mid;
             // cout <<"OL: " << l << " OR: " << r << endl;
@@ -159,7 +178,41 @@ class Index {
             if(B.getSplitDim() == B.getDim()){
                 return 1 - AGM;
             }
-            vector<pair<Bucket, int> > sons = split(B);
+            cntTotalCall++;
+            auto startCacheHit = chrono::high_resolution_clock::now();
+            bool flag = bucketSplitCache.find(B) == bucketSplitCache.end();
+            auto endCacheHit = chrono::high_resolution_clock::now();
+            chrono::duration<double> elapsedCacheHit = endCacheHit - startCacheHit;
+            totalCacheHitTime += elapsedCacheHit.count();
+            if(flag){
+                auto start = chrono::high_resolution_clock::now();
+                vector<pair<Bucket, int> > result = split(B);
+                auto end = chrono::high_resolution_clock::now();
+                chrono::duration<double> elapsed = end - start;
+                totalSplitTime += elapsed.count();
+                // B.print();
+                // if(B.getLowerBound().size() != 3 || B.getUpperBound().size() != 3) cout << "ERROR: " << B.getLowerBound().size() << ", " << B.getUpperBound().size() << endl;
+                // cout << "-----------------------v" << endl;
+                // for (const auto& son : result) {
+                //     son.first.print();
+                //     cout << "AGM: " << son.second << endl;
+                // }
+                
+                // cout << "-----------------------^" << endl;
+                startCacheHit = chrono::high_resolution_clock::now();
+                bucketSplitCache[B] = result;
+                endCacheHit = chrono::high_resolution_clock::now();
+                elapsedCacheHit = endCacheHit - startCacheHit;
+                totalCacheHitTime += elapsedCacheHit.count();
+                // cout << "cache success" << endl;
+            }
+            else cntCacheHit++;
+            startCacheHit = chrono::high_resolution_clock::now();
+            vector<pair<Bucket, int> > sons = bucketSplitCache[B];
+            endCacheHit = chrono::high_resolution_clock::now();
+            elapsedCacheHit = endCacheHit - startCacheHit;
+            totalCacheHitTime += elapsedCacheHit.count();
+            // vector<pair<Bucket, int> > sons = split(B);
             int temp = 0;
             for(int i = 0; i < sons.size(); i++){
                 // cout << "SON::" << i <<": ";
@@ -175,10 +228,45 @@ class Index {
 
         pair<bool, vector<int> > randomAccess_opt(Bucket B, int k, int offset = 0, int AGM = -1){
             if(AGM < 0)AGM = AGMforBucket(B);
+            cntTotalCall++;
             // B.print();
             // cout << "ThisBucketInterval: " << offset + 1 << " " << offset + AGM << endl;
             if(B.getSplitDim() == B.getDim())return make_pair(true, B.getLowerBound());
-            vector<pair<Bucket, int> > sons = split(B);
+            
+            auto startCacheHit = chrono::high_resolution_clock::now();
+            bool flag = bucketSplitCache.find(B) == bucketSplitCache.end();
+            auto endCacheHit = chrono::high_resolution_clock::now();
+            chrono::duration<double> elapsedCacheHit = endCacheHit - startCacheHit;
+            totalCacheHitTime += elapsedCacheHit.count();
+            if(flag){
+                auto start = chrono::high_resolution_clock::now();
+                vector<pair<Bucket, int> > result = split(B);
+                auto end = chrono::high_resolution_clock::now();
+                chrono::duration<double> elapsed = end - start;
+                totalSplitTime += elapsed.count();
+                // B.print();
+                // if(B.getLowerBound().size() != 3 || B.getUpperBound().size() != 3) cout << "ERROR: " << B.getLowerBound().size() << ", " << B.getUpperBound().size() << endl;
+                // cout << "-----------------------v" << endl;
+                // for (const auto& son : result) {
+                //     son.first.print();
+                //     cout << "AGM: " << son.second << endl;
+                // }
+                
+                // cout << "-----------------------^" << endl;
+                startCacheHit = chrono::high_resolution_clock::now();
+                bucketSplitCache[B] = result;
+                endCacheHit = chrono::high_resolution_clock::now();
+                elapsedCacheHit = endCacheHit - startCacheHit;
+                totalCacheHitTime += elapsedCacheHit.count();
+                // cout << "cache success" << endl;
+            }
+            else cntCacheHit++;
+            startCacheHit = chrono::high_resolution_clock::now();
+            vector<pair<Bucket, int> > sons = bucketSplitCache[B];
+            endCacheHit = chrono::high_resolution_clock::now();
+            elapsedCacheHit = endCacheHit - startCacheHit;
+            totalCacheHitTime += elapsedCacheHit.count();
+            // vector<pair<Bucket, int> > sons = split(B);
             int temp = 0;
             for(int i = 0; i < sons.size(); i++){
                 pair<Bucket, int> son = sons[i];

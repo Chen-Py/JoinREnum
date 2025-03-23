@@ -83,6 +83,10 @@
         "valarray": "cpp",
         "variant": "cpp",
         "expected": "cpp",
-        "format": "cpp"
+        "format": "cpp",
+        "barrier": "cpp",
+        "latch": "cpp",
+        "semaphore": "cpp",
+        "syncstream": "cpp"
     }
 }

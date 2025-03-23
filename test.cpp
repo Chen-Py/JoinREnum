@@ -31,10 +31,10 @@ int main() {
     }
 
     // Query q(query_rels, query_vars);
-    // Query q({"R1", "R2", "R3"}, {{"x1", "x2"}, {"x2", "x3"}, {"x1", "x3"}});
+    Query q({"R1", "R2", "R3"}, {{"A", "B"}, {"B", "C"}, {"A", "C"}});
     // Query q({"R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9"}, {{"x1", "x2"}, {"x2", "x3"}, {"x1", "x3"}, {"x3", "x4"}, {"x4", "x5"}, {"x5", "x6"}, {"x4", "x6"}, {"x1", "x5"}, {"x2", "x6"}});
     // Query q({"R1", "R2", "R3", "R4", "R5", "R6"}, {{"P", "Q", "R"}, {"Q", "S", "T"}, {"R", "T", "U"}, {"P", "S", "V"}, {"U", "V", "W"}, {"W", "P", "Q"}});
-    Query q({"R1", "R2", "R3", "R4"}, {{"A", "B", "C", "D"}, {"B", "C", "E", "F"}, {"C", "D", "F", "G"}, {"B", "D", "E", "G"}});
+    // Query q({"R1", "R2", "R3", "R4"}, {{"A", "B", "C", "D"}, {"B", "C", "E", "F"}, {"C", "D", "F", "G"}, {"B", "D", "E", "G"}});
 
     // Query q({"L1", "L2", "O1", "O2", "C1", "C2", "S"},
     // {{"ok1", "pk"},
@@ -94,19 +94,28 @@ int main() {
     while(bp.remaining()){
         cnt++;
         int s = bp.pick();
-        pair<bool, vector<int> > res = idx.randomAccess(idx.getFullBucket(), s);
+        pair<bool, vector<int> > res = idx.randomAccess_opt(idx.getFullBucket(), s);
         if(res.first){
             cntsuccess++;
-            // if(cntsuccess < step || cntsuccess % step == 0){
+            if(cntsuccess < step || cntsuccess % step == 0){
             end = std::chrono::high_resolution_clock::now();
             elapsed = end - start;
             cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
-            // }
+            }
 
         }        
         if(res.first) bp.ban(s,s);
         else bp.ban(res.second[0], res.second[1]);
     }
+
+    cout << "Cache Hit of SplitBucket: " << idx.cntCacheHit << " Total Call: " << idx.cntTotalCall << endl;
+
+    cout << "Total AGM Call: " << idx.cntAGMCall << endl;
+    cout << "Total AGM Time: " << idx.totalAGMTime << endl;
+    cout << "Total Count Oracle Time: " << idx.totalCountOracleTime << endl;
+    cout << "Total Split Time: " << idx.totalSplitTime << endl;
+    cout << "Total Split Call: " << idx.cntSplitCall << endl;
+    cout << "Total Cache Hit Time: " << idx.totalCacheHitTime << endl;
 
     // ////////////////////////////////REnum
     // int N = idx.AGM();

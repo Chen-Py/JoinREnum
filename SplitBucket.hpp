@@ -4,8 +4,8 @@ using namespace std;
 
 class Bucket {
     private:
-        vector<int> lowerBound;
-        vector<int> upperBound;
+        vector<int> lowerBound = {};
+        vector<int> upperBound = {};
         int splitDim = 0;
         vector<pair<Bucket*, int> > children = {};
 
@@ -41,13 +41,33 @@ class Bucket {
             return;
         }
 
-        Bucket replace(int lower, int upper){
+        // bool operator==(const Bucket& B) const {
+        //     if(lowerBound.size() != B.getLowerBound().size() || upperBound.size() != B.getUpperBound().size()){
+        //         cout << "Bucket size mismatch @ EQ" << endl;
+        //         cout << lowerBound.size() << " != " << B.getLowerBound().size() << "||" << upperBound.size() << " != " << B.getUpperBound().size() << endl;
+        //         return false;
+        //     }
+        //     return lowerBound == B.getLowerBound() && upperBound == B.getUpperBound();
+        // }
+
+        bool operator<(const Bucket& B) const {
+            if (lowerBound.size() != B.getLowerBound().size() || upperBound.size() != B.getUpperBound().size()) {
+                cout << "Bucket size mismatch @ lessEQ" << endl;
+                cout << lowerBound.size() << " != " << B.getLowerBound().size() << "||" << upperBound.size() << " != " << B.getUpperBound().size() << endl;
+                return false;
+            }
+            if (lowerBound < B.getLowerBound()) return true;
+            if (lowerBound > B.getLowerBound()) return false;
+            return upperBound < B.getUpperBound();
+        }
+
+        Bucket replace(int lower, int upper) const {
             Bucket newBucket = Bucket(lowerBound, upperBound);
             newBucket.replaceSelf(lower, upper);
             return newBucket;
         }
 
-        void print(){
+        void print() const {
             cout << "Bucket: ";
             for(int i = 0; i < lowerBound.size(); i++){
                 cout << "[" << lowerBound[i] << ", " << upperBound[i] << "] ";

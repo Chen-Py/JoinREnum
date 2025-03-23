@@ -12,10 +12,11 @@
 #include <unordered_set>
 #include <assert.h>
 #include "iostream"
-#include "RangeTree.hpp"
+// #include "RangeTree.hpp"
+#include "CountOracle.hpp"
 #include <chrono>
 typedef long long ll;
-namespace RT = RangeTree;
+// namespace RT = RangeTree;
 
 using namespace std;
 
@@ -71,7 +72,8 @@ template<typename Parcel, typename ParcelHash = hash<Parcel>, typename ParcelEqu
 struct Table {
     vector<Row<Parcel>> data;
 
-    RT::RangeTree<int, bool> rt;
+    // RT::RangeTree<int, bool> rt;
+    CountOracle<int> rt;
 
     ll totalWeight = 0;
 
@@ -135,18 +137,20 @@ struct Table {
         }
 
         data.reserve(parcelSet.size());
-        vector<RT::Point<int, bool>> list;
+        // vector<RT::Point<int, bool>> list;
+        vector<Point<int>> list;
         for (auto &p : parcelSet) {
-            RT::Point<int, bool> a(p.toTuple(), 1);
+            // RT::Point<int, bool> a(p.toTuple(), 1);
+            Point<int> a(p.toTuple());
             list.push_back(a);
         }
 
         // print the time
         auto start = std::chrono::high_resolution_clock::now();
-        rt = RT::RangeTree<int, bool>(list);
+        rt = CountOracle<int>(list);
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;
-        cout << "Time to build the range tree: " << elapsed.count() << " s\n";
+        cout << "Time to build the Index: " << elapsed.count() << " s\n";
         
         for (auto &p : parcelSet) {
             data.emplace_back(p, 1); //weight is 1
