@@ -12,6 +12,19 @@ class Bucket {
     public:
         Bucket(){}
 
+        /**
+         * @brief Constructor for the Bucket class.
+         * 
+         * Initializes a Bucket object with the specified lower and upper bounds.
+         * The constructor also determines the first dimension (splitDim) where
+         * the lower and upper bounds differ.
+         * 
+         * @param lowerBound A vector of integers representing the lower bounds of the bucket.
+         * @param upperBound A vector of integers representing the upper bounds of the bucket.
+         * 
+         * @note If all dimensions of the lower and upper bounds are equal, splitDim
+         *       will be set to the size of the lowerBound vector.
+         */
         Bucket(vector<int> lowerBound, vector<int> upperBound){
             this->lowerBound = lowerBound;
             this->upperBound = upperBound;
@@ -26,6 +39,15 @@ class Bucket {
             return upperBound;
         }
 
+        /**
+         * @brief Retrieves the dimensionality of the bounds.
+         * 
+         * This function returns the number of dimensions represented
+         * by the `lowerBound` vector, which corresponds to the size
+         * of the `lowerBound` container.
+         * 
+         * @return int The number of dimensions (size of `lowerBound`).
+         */
         int getDim() const {
             return lowerBound.size();
         }

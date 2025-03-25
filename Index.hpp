@@ -115,17 +115,23 @@ class Index {
             // cout <<"MIDBUCKET:";
             // Bmid.print();
             // cout <<"DIM AND DIM "<< splitDim << " " << Bmid.getDim() << endl;
+            
+            // int AGMmid = AGMforBucket(Bmid);
+            // if(splitDim == B.getDim() - 1 || AGMmid <= AGM >> 1){
+            //     if(AGMmid > 0)result.push_back(make_pair(Bmid, AGMforBucket(Bmid)));
+            // }
+            // else{
+            //     vector<pair<Bucket, int> > temp = split(Bmid);
+            //     result.insert(result.end(), temp.begin(), temp.end());
+            // }
+
+            // 
             if(splitDim == B.getDim() - 1){
                 int AGMmid = AGMforBucket(Bmid);
                 if(AGMmid > 0)result.push_back(make_pair(Bmid, AGMforBucket(Bmid)));
             }
             else{
                 vector<pair<Bucket, int> > temp = split(Bmid);
-                // for(int kk = 0; kk < temp.size(); kk++){
-                //     cout <<"[@@@" << endl;
-                //     temp[kk].first.print();
-                //     cout <<"@@@]" << endl;
-                // }
                 result.insert(result.end(), temp.begin(), temp.end());
             }
 
@@ -190,15 +196,6 @@ class Index {
                 auto end = chrono::high_resolution_clock::now();
                 chrono::duration<double> elapsed = end - start;
                 totalSplitTime += elapsed.count();
-                // B.print();
-                // if(B.getLowerBound().size() != 3 || B.getUpperBound().size() != 3) cout << "ERROR: " << B.getLowerBound().size() << ", " << B.getUpperBound().size() << endl;
-                // cout << "-----------------------v" << endl;
-                // for (const auto& son : result) {
-                //     son.first.print();
-                //     cout << "AGM: " << son.second << endl;
-                // }
-                
-                // cout << "-----------------------^" << endl;
                 startCacheHit = chrono::high_resolution_clock::now();
                 bucketSplitCache[B] = result;
                 endCacheHit = chrono::high_resolution_clock::now();

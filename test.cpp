@@ -8,6 +8,20 @@
 #include "BanPickTree.hpp"
 using namespace std;
 
+
+void printInfo(Index &idx) {
+    
+    cout << "Cache Hit of SplitBucket: " << idx.cntCacheHit << " Total Call: " << idx.cntTotalCall << endl;
+
+    cout << "Total AGM Call: " << idx.cntAGMCall << endl;
+    cout << "Total AGM Time: " << idx.totalAGMTime << endl;
+    cout << "Total Count Oracle Time: " << idx.totalCountOracleTime << endl;
+    cout << "Total Split Time: " << idx.totalSplitTime << endl;
+    cout << "Total Split Call: " << idx.cntSplitCall << endl;
+    cout << "Total Cache Hit Time: " << idx.totalCacheHitTime << endl;
+    return;
+}
+
 int main() {
     // Table<Parcel> tbl;
     unordered_map<string, string> filenames = readFilenames("db/filenames.txt");
@@ -91,6 +105,7 @@ int main() {
     auto start = std::chrono::high_resolution_clock::now();
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
+    double last_percentage = 0;
     while(bp.remaining()){
         cnt++;
         int s = bp.pick();
@@ -101,21 +116,23 @@ int main() {
             end = std::chrono::high_resolution_clock::now();
             elapsed = end - start;
             cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
-            }
+        }
+            if(cntsuccess % 500 == 0)printInfo(idx);
 
         }        
         if(res.first) bp.ban(s,s);
+
         else bp.ban(res.second[0], res.second[1]);
+        // double done = bp.getPercentage();
+        // if(int(done * 100) % 10 == 0 && int(done * 100) != int(last_percentage*100)){
+        //     last_percentage = done;
+        //     end = std::chrono::high_resolution_clock::now();
+        //     elapsed = end - start;
+        //     cout << bp.getPercentage() << ", " << elapsed.count() << endl;
+        //     last_percentage = done;
+        // }
     }
 
-    cout << "Cache Hit of SplitBucket: " << idx.cntCacheHit << " Total Call: " << idx.cntTotalCall << endl;
-
-    cout << "Total AGM Call: " << idx.cntAGMCall << endl;
-    cout << "Total AGM Time: " << idx.totalAGMTime << endl;
-    cout << "Total Count Oracle Time: " << idx.totalCountOracleTime << endl;
-    cout << "Total Split Time: " << idx.totalSplitTime << endl;
-    cout << "Total Split Call: " << idx.cntSplitCall << endl;
-    cout << "Total Cache Hit Time: " << idx.totalCacheHitTime << endl;
 
     // ////////////////////////////////REnum
     // int N = idx.AGM();
@@ -162,7 +179,9 @@ int main() {
     
     end = std::chrono::high_resolution_clock::now();
     elapsed = end - start;
-    cout << cntsuccess + 1 << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
+    cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
+
+    printInfo(idx);
     // cout << cntsuccess + 1 << ", " << cnt << ", " << elapsed.count() << endl;
     // cout << "Success: " << cntsuccess << " Total: " << cnt << endl;
     // cout << "Total: " << bp.getTotal() << endl;

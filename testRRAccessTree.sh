@@ -1,0 +1,1 @@
+g++ testRRAccessTree.cpp -O3 -g -o test -lglpk && ./test
