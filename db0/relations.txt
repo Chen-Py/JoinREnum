@@ -1,4 +1,0 @@
-R1(A,B,C,D)
-R2(B,C,E,F)
-R3(C,D,F,G)
-R4(B,D,E,G)
