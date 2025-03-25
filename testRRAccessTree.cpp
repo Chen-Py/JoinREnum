@@ -15,7 +15,7 @@ int main() {
     unordered_map<string, int> numlines = readNumLines("db/numlines.txt");
     unordered_map<string, vector<string> > relations = readRelations("db/relations.txt");
 
-    RRAccessTree tree(q, filenames, numlines, relations);
+    RRAccessTree tree(q, relations, filenames, numlines);
 
     for(int i = 1; i <= tree.AGM; i++) {
         pair<bool, vector<int> > res = tree.RRAccess(i);

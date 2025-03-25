@@ -20,8 +20,27 @@ class Index {
         double totalCountOracleTime = 0;
         double totalSplitTime = 0;
         double totalCacheHitTime = 0;
+
         Index() {};
+
         Index(Query q) : q(q) {};
+
+        Index(
+            const unordered_map<string, vector<string> >& relations,
+            const unordered_map<string, string>& filenames,
+            const unordered_map<string, int>& numLines) {
+            // parse vector<string> relationNames, vector<vector<string> > relations from relations
+            vector<string> relationNames;
+            vector<vector<string> > relationVars;
+            for(unordered_map<string, vector<string> >::const_iterator it = relations.begin(); it != relations.end(); it++) {
+                relationNames.push_back(it->first);
+                relationVars.push_back(it->second);
+            }
+            q = Query(relationNames, relationVars);
+            q.print();
+            preProcessing(relations, filenames, numLines);
+        }
+
         void preProcessing(const unordered_map<string, vector<string> >& relations, const unordered_map<string, string>& filenames, const unordered_map<string, int>& numLines) {
             for(int i = 0; i < q.getRelNames().size(); i++) {
                 string relName = q.getRelNames()[i];

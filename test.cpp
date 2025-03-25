@@ -101,7 +101,7 @@ int main() {
     cout << idx.AGM() << endl;
     //////////////////////////////REnum-BMITU
     BanPickTree bp(idx.AGM());
-    if(freopen("res/res_q4_bitu.txt", "w", stdout) == NULL)cout << "WRITEERR" << endl;
+    if(freopen("res/result.txt", "w", stdout) == NULL)cout << "WRITEERR" << endl;
     auto start = std::chrono::high_resolution_clock::now();
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
@@ -182,6 +182,8 @@ int main() {
     cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
 
     printInfo(idx);
+
+    // idx.printBucketTree(idx.getFullBucket());
     // cout << cntsuccess + 1 << ", " << cnt << ", " << elapsed.count() << endl;
     // cout << "Success: " << cntsuccess << " Total: " << cnt << endl;
     // cout << "Total: " << bp.getTotal() << endl;
