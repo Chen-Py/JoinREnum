@@ -9,13 +9,15 @@ int main() {
     // node->print();
     
     
-    Query q({"R1", "R2", "R3"}, {{"A", "B"}, {"B", "C"}, {"A", "C"}});
+    // Query q({"R1", "R2", "R3"}, {{"A", "B"}, {"B", "C"}, {"A", "C"}});
     
     unordered_map<string, string> filenames = readFilenames("db/filenames.txt");
     unordered_map<string, int> numlines = readNumLines("db/numlines.txt");
     unordered_map<string, vector<string> > relations = readRelations("db/relations.txt");
 
-    RRAccessTree tree(q, relations, filenames, numlines);
+    RRAccessTree tree(relations, filenames, numlines);
+
+
 
     for(int i = 1; i <= tree.AGM; i++) {
         pair<bool, vector<int> > res = tree.RRAccess(i);
@@ -27,6 +29,7 @@ int main() {
     }
 
     tree.print();
+    // tree.idx.printBucketTree(tree.idx.getFullBucket());
     
     return 0;
 }

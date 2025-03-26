@@ -131,13 +131,14 @@ class Query{
         void print(){
             cout << "Variables: " << endl;
             for(auto it = variables.begin(); it != variables.end(); it++){
-                cout << it->first << ": " << it->second << endl;
+                cout << it->first << "--Rename-> x" << it->second << endl;
             }
             cout << "Relations: " << endl;
             for(int i = 0; i < relations.size(); i++){
+                cout << relationNames[i] << "--Rename-> ";
                 cout << "R" << i+1 <<"(";
                 for(int j = 0; j < relations[i].size(); j++){
-                    cout << relations[i][j];
+                    cout << "x" << relations[i][j];
                     if(j + 1 < relations[i].size()) cout << ", ";
                 }
                 cout << ")" << endl;
