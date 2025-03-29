@@ -95,7 +95,10 @@ class BanPickTree {
             return y + b;
         }
     public:
+        BanPickTree(){}
+        
         BanPickTree(int H): H(H) {}
+        
         int getTotal(){
             return H;
         }

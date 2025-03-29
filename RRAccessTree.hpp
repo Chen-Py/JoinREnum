@@ -127,6 +127,8 @@ public:
     RRAccessTreeNode* root = NULL;
     Index idx;
 
+    RRAccessTree() {}
+
     /**
      * @brief Constructs an RRAccessTree object.
      *
