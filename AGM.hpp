@@ -16,15 +16,15 @@ class Query{
         vector<string> variableNames;
         vector<vector<int> > relations;
         vector<int> cardinalities;
-        vector<vector<int> > rels;
+        vector<vector<int> > relsofVar;
         // vector<string> variableNames;
         glp_prob *lp;
         
         void initRels(){
-            rels = vector<vector<int> >(variables.size(), vector<int>());
+            relsofVar = vector<vector<int> >(variables.size(), vector<int>());
             for(int i = 0; i < relations.size(); i++){
                 for(int j = 0; j < relations[i].size(); j++){
-                    rels[relations[i][j]].push_back(i);
+                    relsofVar[relations[i][j]].push_back(i);
                 }
             }
         }
@@ -44,7 +44,7 @@ class Query{
             for(int i = 1; i <= variables.size(); i++){
                 glp_set_row_name(lp, i, ("v" + std::to_string(i)).c_str());
                 glp_set_row_bnds(lp, i, GLP_LO, 1.0, 0.0);
-                vector<int> rs = rels[i - 1];
+                vector<int> rs = relsofVar[i - 1];
                 int ind[rs.size() + 1] = {0};
                 double val[rs.size() + 1] = {0};
                 for(int j = 0; j < rs.size(); j++){
@@ -117,11 +117,11 @@ class Query{
         }
 
         const vector<int>& getRels(int i){
-            return rels[i];
+            return relsofVar[i];
         }
 
         const vector<int>& getRels(string var){
-            return rels[variables[var]];
+            return relsofVar[variables[var]];
         }
 
         int getCardinality(int i){
