@@ -5,7 +5,7 @@ using namespace std;
 class JoinTree {
 private:
 public:
-    int rootID;
+    int root;
     vector<vector<int> > children; // children[i] = list of children of node i
     vector<int> parent; // parent[i] = parent of node i, -1 if root
 
@@ -13,7 +13,7 @@ public:
 
     JoinTree(Query q) {
         queue<int> que;
-        rootID = 0;
+        root = 0;
         children = vector<vector<int> >(q.getRelNames().size(), vector<int>());
         parent = vector<int>(q.getRelNames().size(), -1);
         vector<bool> visited(q.getRelNames().size(), false);
@@ -68,6 +68,6 @@ public:
     }
 
     void print(){
-        printTree(rootID);
+        printTree(root);
     }
 };
