@@ -128,6 +128,21 @@ class Query{
             return cardinalities[i];
         }
 
+        vector<int> getNeighborRels(int x) {
+            set<int> neighbors;
+            int var, neighbor;
+            for(int i = 0; i < getRelations()[x].size(); i++) {
+                var = getRelations()[x][i]; // get the variable index
+                for(int j = 0; j < getRels(var).size(); j++) {
+                    neighbor = getRels(var)[j]; // get the relation index
+                    if(neighbor != x) neighbors.insert(neighbor);
+                }
+            }
+            // convert set to vector
+            vector<int> neighborVec(neighbors.begin(), neighbors.end());
+            return neighborVec; // return the vector of neighbors
+        }
+
         void print(){
             cout << "Variables: " << endl;
             for(auto it = variables.begin(); it != variables.end(); it++){
@@ -136,7 +151,7 @@ class Query{
             cout << "Relations: " << endl;
             for(int i = 0; i < relations.size(); i++){
                 cout << relationNames[i] << "--Rename-> ";
-                cout << "R" << i+1 <<"(";
+                cout << "R" << i <<"(";
                 for(int j = 0; j < relations[i].size(); j++){
                     cout << "x" << relations[i][j];
                     if(j + 1 < relations[i].size()) cout << ", ";
