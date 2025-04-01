@@ -104,6 +104,27 @@ public:
         return vec > p.vec;
     }
 
+    bool operator < (const vector<T>& v) const {
+        if (vec.size() > v.size()) {
+            throw std::out_of_range("Cannot compare Point with vector of different dimensions");
+        }
+        for (int i = 0; i < v.size(); i++) {
+            if (vec[i] < v[i]) return true; // this point is less than the vector
+            else if (vec[i] > v[i]) return false; // this point is greater than the vector
+        }
+        return false; // they are equal, so return false for less than
+    }
+
+    bool operator == (const vector<T>& v) const {
+        if (vec.size() > v.size()) {
+            throw std::out_of_range("Cannot compare Point with vector of different dimensions");
+        }
+        for (int i = 0; i < v.size(); i++) {
+            if (vec[i] != v[i]) return false;
+        }
+        return true;
+    }
+
     /**
      * Prints the point to standard out.
      *

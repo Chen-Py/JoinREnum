@@ -20,6 +20,7 @@ public:
         children = vector<vector<int> >(q.getRelNames().size(), vector<int>());
         joinPos = vector<vector<vector<int > > >(q.getRelNames().size(), vector<vector<int> >());
         parent = vector<int>(q.getRelNames().size(), -1);
+        cnt = vector<vector<int> >(q.getRelNames().size(), vector<int>());
         vector<bool> visited(q.getRelNames().size(), false);
         visited[0] = true;
         que.push(0);
@@ -48,21 +49,43 @@ public:
         for(int rel = 0; rel < children.size(); rel++) {
             for(int i = 0; i < children[rel].size(); i++) {
                 joinPos[rel].push_back(vector<int>());
-                int child = children[rel][i], cnt = 0;
+                int child = children[rel][i], at = 0;
                 for(int j = 0; j < q.getRelations()[rel].size(); j++) {
-                    if(q.getRelations()[rel][j] == q.getRelations()[child][cnt]){
+                    if(q.getRelations()[rel][j] == q.getRelations()[child][at]){
                         joinPos[rel][i].push_back(j);
-                        cnt++;
+                        at++;
                     }
                 }
             }
         }
     }
 
-    void preprocess(int node, const CountOracle<int> &CO) {
+    void preprocess(int node, const vector<CountOracle<int>* > &CO) {
         if(node < 0 || node >= (int)children.size()) return;
         for(int i = 0; i < children[node].size(); i++) preprocess(children[node][i], CO);
-
+        cnt[node] = vector<int>(CO[node]->points.size(), 1);
+        vector<int> at(children[node].size(), 0);
+        vector<int> lastcnt(children[node].size(), 1);
+        for(int i = 0; i < cnt[node].size(); i++) {
+            for(int j = 0; j < children[node].size(); j++) {
+                vector<int> joinVals = {};
+                int tempcnt = 0;
+                for(int pos : joinPos[node][j]) joinVals.push_back(CO[node]->points[i][pos]);
+                if(at[j] > 0 && CO[node]->points[at[j] - 1] == joinVals){
+                    cnt[node][i] *= lastcnt[j];
+                    continue;
+                }
+                while(at[j] < (int)CO[children[node][j]]->points.size() && CO[children[node][j]]->points[at[j]] < joinVals) at[j]++;
+                while(at[j] < (int)CO[children[node][j]]->points.size() && CO[children[node][j]]->points[at[j]] == joinVals) {
+                    tempcnt += cnt[children[node][j]][at[j]];
+                    at[j]++;
+                }
+                cnt[node][i] *= tempcnt;
+                lastcnt[j] = tempcnt;
+            }
+            // cnt[node][i] += cnt[node][i - 1]; // prefix sum for the counts
+        }
+        return;
     }
 
     void printTree(int nodeID, int depth = 0) {
