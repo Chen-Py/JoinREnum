@@ -15,5 +15,6 @@ int main() {
     // }
     JoinTree tree(q);
     tree.print();
+    tree.printChildren();
     return 0;
 }

@@ -1,13 +1,16 @@
 #include <bits/stdc++.h>
 #include "AGM.hpp"
+#include "CountOracle.hpp"
 using namespace std;
 
 class JoinTree {
 private:
+    vector<vector<int> > cnt;
 public:
     int root;
     vector<vector<int> > children; // children[i] = list of children of node i
     vector<int> parent; // parent[i] = parent of node i, -1 if root
+    vector<vector<vector<int> > > joinPos; // joinPos[i][j] = the join positions of the edge between i and j
 
     JoinTree(){}
 
@@ -15,6 +18,7 @@ public:
         queue<int> que;
         root = 0;
         children = vector<vector<int> >(q.getRelNames().size(), vector<int>());
+        joinPos = vector<vector<vector<int > > >(q.getRelNames().size(), vector<vector<int> >());
         parent = vector<int>(q.getRelNames().size(), -1);
         vector<bool> visited(q.getRelNames().size(), false);
         visited[0] = true;
@@ -41,6 +45,24 @@ public:
                 }
             }
         }
+        for(int rel = 0; rel < children.size(); rel++) {
+            for(int i = 0; i < children[rel].size(); i++) {
+                joinPos[rel].push_back(vector<int>());
+                int child = children[rel][i], cnt = 0;
+                for(int j = 0; j < q.getRelations()[rel].size(); j++) {
+                    if(q.getRelations()[rel][j] == q.getRelations()[child][cnt]){
+                        joinPos[rel][i].push_back(j);
+                        cnt++;
+                    }
+                }
+            }
+        }
+    }
+
+    void preprocess(int node, const CountOracle<int> &CO) {
+        if(node < 0 || node >= (int)children.size()) return;
+        for(int i = 0; i < children[node].size(); i++) preprocess(children[node][i], CO);
+
     }
 
     void printTree(int nodeID, int depth = 0) {
@@ -59,9 +81,13 @@ public:
 
     void printChildren() {
         for(int i = 0; i < children.size(); i++) {
-            cout << "Node " << i << " has children: ";
+            cout << "R" << i << " has children: ";
             for(int j = 0; j < children[i].size(); j++) {
-                cout << children[i][j] << " "; // print the children of the current node
+                cout << "R" << children[i][j] << "("; // print the children of the current node
+                for(int k = 0; k < joinPos[i][j].size() - 1; k++) {
+                    cout << joinPos[i][j][k] << ", ";
+                }
+                cout << joinPos[i][j][joinPos[i][j].size() - 1] << "); ";
             }
             cout << endl; // new line for the next node
         }

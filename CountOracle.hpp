@@ -127,10 +127,10 @@ template<typename T>
 class CountOracle {
     static_assert(is_arithmetic<T>::value, "Type T must be numeric");
 private:
-    vector<Point<T> > points;
     vector<T> lowerbound, upperbound;
 
 public:
+    vector<Point<T> > points;
 
     CountOracle() {}
 
