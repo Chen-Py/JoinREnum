@@ -2,3 +2,4 @@
 .vscode/
 db/*.tbl
 res/*.txt
+*.exe
