@@ -1,8 +1,23 @@
+#include <bits/stdc++.h>
+#include "Index.hpp"
 #include "JoinTree.hpp"
+#include "ReadConfig.hpp"
 using namespace std;
 int main() {
     
     Query q({"R1", "R2", "R3"}, {{"A", "B"}, {"B", "C"}, {"A", "C"}});
+    
+
+    unordered_map<string, vector<string> > relations = readRelations("db/relations.txt");
+    unordered_map<string, string> filenames = readFilenames("db/filenames.txt");
+    unordered_map<string, int> numlines = readNumLines("db/numlines.txt");
+
+    Index idx = Index(q);
+    idx.preProcessing(relations, filenames, numlines);
+
+    vector<CountOracle<int>*> CO = idx.getCountOracles();
+
+
     // Query q({"R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9"}, {{"x1", "x2"}, {"x2", "x3"}, {"x1", "x3"}, {"x3", "x4"}, {"x4", "x5"}, {"x5", "x6"}, {"x4", "x6"}, {"x1", "x5"}, {"x2", "x6"}});
 
     // Query q({"R1", "R2", "R3", "R4"}, {{"A", "B", "C", "D"}, {"B", "D", "E", "G"}, {"B", "C", "E", "F"}, {"C", "D", "F", "G"}});
@@ -16,5 +31,6 @@ int main() {
     JoinTree tree(q);
     tree.print();
     tree.printChildren();
+    tree.preProcessing(CO);
     return 0;
 }

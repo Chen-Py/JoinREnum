@@ -105,7 +105,7 @@ public:
     }
 
     bool operator < (const vector<T>& v) const {
-        if (vec.size() > v.size()) {
+        if (vec.size() < v.size()) {
             throw std::out_of_range("Cannot compare Point with vector of different dimensions");
         }
         for (int i = 0; i < v.size(); i++) {
@@ -116,7 +116,7 @@ public:
     }
 
     bool operator == (const vector<T>& v) const {
-        if (vec.size() > v.size()) {
+        if (vec.size() < v.size()) {
             throw std::out_of_range("Cannot compare Point with vector of different dimensions");
         }
         for (int i = 0; i < v.size(); i++) {

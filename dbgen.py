@@ -3,10 +3,10 @@ import numpy as np
 filenames = {}
 numlines = {}
 numvars = {}
-dbsize = 100000
+dbsize = 100
 lowerBound = 1
 # upperBound = dbsize // 10
-upperBound = 10000
+upperBound = 40
 
 with open("db/filenames.txt", "r") as f:
     for line in f:
@@ -52,6 +52,9 @@ def gen_data(relation):
                     # #     temp = upperBound
                     # line.append(str(temp))
             S.add(tuple(line))
+        # output lines in S in lex order
+        S = sorted(S)
+        for line in S:
             f.write("|".join(line) + "\n")
 
 for relation in filenames:

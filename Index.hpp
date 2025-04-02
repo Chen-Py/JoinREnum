@@ -58,6 +58,14 @@ class Index {
             }
         }
 
+        vector<CountOracle<int>* > getCountOracles() {
+            vector<CountOracle<int>* > CO;
+            for(int i = 0; i < tables.size(); i++) {
+                CO.push_back(&tables[i].rt);
+            }
+            return CO;
+        }
+
         int AGM() {
             return AGMforBucket(getFullBucket());
         }

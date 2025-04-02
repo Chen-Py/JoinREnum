@@ -1,6 +1,3 @@
-#include <bits/stdc++.h>
-#include "AGM.hpp"
-#include "CountOracle.hpp"
 using namespace std;
 
 class JoinTree {
@@ -60,32 +57,21 @@ public:
         }
     }
 
-    void preprocess(int node, const vector<CountOracle<int>* > &CO) {
+    void preProcessing(int node, const vector<CountOracle<int>*> &CO) {
         if(node < 0 || node >= (int)children.size()) return;
-        for(int i = 0; i < children[node].size(); i++) preprocess(children[node][i], CO);
+        for(int i = 0; i < children[node].size(); i++) preProcessing(children[node][i], CO);
         cnt[node] = vector<int>(CO[node]->points.size(), 1);
-        vector<int> at(children[node].size(), 0);
-        vector<int> lastcnt(children[node].size(), 1);
         for(int i = 0; i < cnt[node].size(); i++) {
             for(int j = 0; j < children[node].size(); j++) {
                 vector<int> joinVals = {};
-                int tempcnt = 0;
                 for(int pos : joinPos[node][j]) joinVals.push_back(CO[node]->points[i][pos]);
-                if(at[j] > 0 && CO[node]->points[at[j] - 1] == joinVals){
-                    cnt[node][i] *= lastcnt[j];
-                    continue;
-                }
-                while(at[j] < (int)CO[children[node][j]]->points.size() && CO[children[node][j]]->points[at[j]] < joinVals) at[j]++;
-                while(at[j] < (int)CO[children[node][j]]->points.size() && CO[children[node][j]]->points[at[j]] == joinVals) {
-                    tempcnt += cnt[children[node][j]][at[j]];
-                    at[j]++;
-                }
-                cnt[node][i] *= tempcnt;
-                lastcnt[j] = tempcnt;
             }
-            // cnt[node][i] += cnt[node][i - 1]; // prefix sum for the counts
         }
         return;
+    }
+
+    void preProcessing(const vector<CountOracle<int>*> &CO) {
+        preProcessing(root, CO);
     }
 
     void printTree(int nodeID, int depth = 0) {
