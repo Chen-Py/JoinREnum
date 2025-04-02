@@ -13,9 +13,11 @@ class Point {
     static_assert(is_arithmetic<T>::value, "Type T must be numeric");
 private:
     vector<T> vec;
-    // int multiplicity;
 
 public:
+
+    int cnt = 1;
+    
     /**
      * Constructs an empty point.
      *
@@ -97,33 +99,14 @@ public:
     }
 
     bool operator < (const Point<T>& p) const {
-        return vec < p.vec;
+        int siz = min(vec.size(), p.vec.size());
+        for(int i = 0; i < siz; i++){
+            if(vec[i] < p.vec[i]) return true;
+            else if(vec[i] > p.vec[i]) return false;
+        }
+        return false;
     }
 
-    bool operator > (const Point<T>& p) const {
-        return vec > p.vec;
-    }
-
-    bool operator < (const vector<T>& v) const {
-        if (vec.size() < v.size()) {
-            throw std::out_of_range("Cannot compare Point with vector of different dimensions");
-        }
-        for (int i = 0; i < v.size(); i++) {
-            if (vec[i] < v[i]) return true; // this point is less than the vector
-            else if (vec[i] > v[i]) return false; // this point is greater than the vector
-        }
-        return false; // they are equal, so return false for less than
-    }
-
-    bool operator == (const vector<T>& v) const {
-        if (vec.size() < v.size()) {
-            throw std::out_of_range("Cannot compare Point with vector of different dimensions");
-        }
-        for (int i = 0; i < v.size(); i++) {
-            if (vec[i] != v[i]) return false;
-        }
-        return true;
-    }
 
     /**
      * Prints the point to standard out.
@@ -140,7 +123,7 @@ public:
         for (int i = 0; i < dim() - 1; i++) {
             cout << (*this)[i] << ", ";
         }
-        cout << (*this)[dim() - 1] << ") : " << endl;
+        cout << (*this)[dim() - 1] << ") : " << cnt << endl;
     }
 };
 
@@ -185,6 +168,14 @@ public:
         this->points = points;
     }
 
+    int sumCnt(const Point<T> &pl, const Point<T> &pr) {
+        vector<Point<int> >::iterator itl = lower_bound(points.begin(), points.end(), pl);
+        vector<Point<int> >::iterator itr = upper_bound(points.begin(), points.end(), pr);
+        if(itr == points.begin())return 0;
+        else if(itl == points.begin())return (itr - 1)->cnt;
+        else return (itr - 1)->cnt - (itl - 1)->cnt;
+    }
+
     
     /**
      * @brief Counts the number of points within the range [pl, pr).
@@ -214,7 +205,7 @@ public:
      * @param bucket A vector of pairs, where each pair contains two elements of type T.
      * @return The count of elements as determined by the count function called with Point objects.
      */
-    int count(vector<pair<T, T> >& bucket) {
+    int count(const vector<pair<T, T> >& bucket) {
         vector<T> vl, vr;
         for(int i = 0; i < bucket.size(); i++){
             vl.push_back(bucket[i].first);

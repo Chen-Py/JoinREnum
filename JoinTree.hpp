@@ -2,7 +2,7 @@ using namespace std;
 
 class JoinTree {
 private:
-    vector<vector<int> > cnt;
+    vector<CountOracle<int>*> CO;
 public:
     int root;
     vector<vector<int> > children; // children[i] = list of children of node i
@@ -11,13 +11,12 @@ public:
 
     JoinTree(){}
 
-    JoinTree(Query q) {
+    JoinTree(Query q, vector<CountOracle<int>*> CO) : CO(CO) {
         queue<int> que;
         root = 0;
         children = vector<vector<int> >(q.getRelNames().size(), vector<int>());
         joinPos = vector<vector<vector<int > > >(q.getRelNames().size(), vector<vector<int> >());
         parent = vector<int>(q.getRelNames().size(), -1);
-        cnt = vector<vector<int> >(q.getRelNames().size(), vector<int>());
         vector<bool> visited(q.getRelNames().size(), false);
         visited[0] = true;
         que.push(0);
@@ -55,23 +54,20 @@ public:
                 }
             }
         }
+        preProcessing(root);
     }
 
-    void preProcessing(int node, const vector<CountOracle<int>*> &CO) {
+    void preProcessing(int node) {
         if(node < 0 || node >= (int)children.size()) return;
-        for(int i = 0; i < children[node].size(); i++) preProcessing(children[node][i], CO);
-        cnt[node] = vector<int>(CO[node]->points.size(), 1);
-        for(int i = 0; i < cnt[node].size(); i++) {
+        for(int i = 0; i < children[node].size(); i++) preProcessing(children[node][i]);
+        for(int i = 0; i < CO[node]->points.size(); i++) {
             for(int j = 0; j < children[node].size(); j++) {
                 vector<int> joinVals = {};
                 for(int pos : joinPos[node][j]) joinVals.push_back(CO[node]->points[i][pos]);
             }
+            if(i > 0) CO[node]->points[i].cnt += CO[node]->points[i - 1].cnt + i;
         }
         return;
-    }
-
-    void preProcessing(const vector<CountOracle<int>*> &CO) {
-        preProcessing(root, CO);
     }
 
     void printTree(int nodeID, int depth = 0) {

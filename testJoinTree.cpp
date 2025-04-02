@@ -28,9 +28,13 @@ int main() {
     //         cout << "Relation " << i << " has neighbor: " << neighbors[j] << endl; // print the neighbors of the current relation
     //     }
     // }
-    JoinTree tree(q);
+    JoinTree tree(q, CO);
     tree.print();
     tree.printChildren();
-    tree.preProcessing(CO);
+    for(CountOracle<int>* co : CO) {
+        cout << "Count Oracle:-----------------" << endl;
+        co->print();
+    }
+    cout << CO[1]->sumCnt(Point<int>({1}),Point<int>({1})) << endl;
     return 0;
 }
