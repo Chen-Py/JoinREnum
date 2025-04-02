@@ -35,6 +35,6 @@ int main() {
         cout << "Count Oracle:-----------------" << endl;
         co->print();
     }
-    cout << CO[1]->sumCnt(Point<int>({1}),Point<int>({1})) << endl;
+    // cout << CO[0]->sumCnt(Point<int>({1}),Point<int>({4})) << endl;
     return 0;
 }

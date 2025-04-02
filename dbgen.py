@@ -3,10 +3,10 @@ import numpy as np
 filenames = {}
 numlines = {}
 numvars = {}
-dbsize = 100000
+dbsize = 10
 lowerBound = 1
 # upperBound = dbsize // 10
-upperBound = 10000
+upperBound = 8
 
 with open("db/filenames.txt", "r") as f:
     for line in f:

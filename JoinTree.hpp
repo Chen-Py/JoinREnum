@@ -64,8 +64,9 @@ public:
             for(int j = 0; j < children[node].size(); j++) {
                 vector<int> joinVals = {};
                 for(int pos : joinPos[node][j]) joinVals.push_back(CO[node]->points[i][pos]);
+                CO[node]->points[i].cnt *= CO[children[node][j]]->sumCnt(Point<int>(joinVals), Point<int>(joinVals));
             }
-            if(i > 0) CO[node]->points[i].cnt += CO[node]->points[i - 1].cnt + i;
+            if(i > 0) CO[node]->points[i].cnt += CO[node]->points[i - 1].cnt;
         }
         return;
     }
