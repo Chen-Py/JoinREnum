@@ -31,10 +31,10 @@ int main() {
     JoinTree tree(q, CO);
     tree.print();
     tree.printChildren();
-    for(CountOracle<int>* co : CO) {
-        cout << "Count Oracle:-----------------" << endl;
-        co->print();
-    }
+    // for(CountOracle<int>* co : CO) {
+    //     cout << "Count Oracle:-----------------" << endl;
+    //     co->print();
+    // }
     // cout << CO[0]->sumCnt(Point<int>({1}),Point<int>({4})) << endl;
     return 0;
 }

@@ -27,30 +27,27 @@ public:
             for(int i = 0; i < neighbors.size(); i++) {
                 int neighbor = neighbors[i];
                 if(visited[neighbor]) continue; // if the neighbor has already been visited, skip it
+                
+                vector<int> jpos = {};
+                for(int j = 0; j < q.getRelations()[rel].size(); j++)
+                    if(q.getRelations()[rel][j] == q.getRelations()[neighbor][jpos.size()])
+                        jpos.push_back(j);
+                
+                vector<int> neineighbors = q.getNeighborRels(neighbor, jpos.size());
+
                 bool cyclic = false;
-                vector<int> neineighbors = q.getNeighborRels(neighbor);
                 for(int j = 0; j < neineighbors.size(); j++) {
                     int neineighbor = neineighbors[j];
                     if(neineighbor == rel) continue;
                     if(visited[neineighbor])cyclic = true;
                 }
+
                 if(!cyclic) {
                     children[rel].push_back(neighbor);
+                    joinPos[rel].push_back(jpos);
                     parent[neighbor] = rel;
                     visited[neighbor] = true;
                     que.push(neighbor); // add the neighbor to the queue for further exploration
-                }
-            }
-        }
-        for(int rel = 0; rel < children.size(); rel++) {
-            for(int i = 0; i < children[rel].size(); i++) {
-                joinPos[rel].push_back(vector<int>());
-                int child = children[rel][i], at = 0;
-                for(int j = 0; j < q.getRelations()[rel].size(); j++) {
-                    if(q.getRelations()[rel][j] == q.getRelations()[child][at]){
-                        joinPos[rel][i].push_back(j);
-                        at++;
-                    }
                 }
             }
         }

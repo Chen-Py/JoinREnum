@@ -2,10 +2,10 @@ from random import randint
 filenames = {}
 numlines = {}
 numvars = {}
-dbsize = 10
+dbsize = 100000
 lowerBound = 1
 # upperBound = dbsize // 10
-upperBound = 8
+upperBound = 10000
 
 with open("db/filenames.txt", "r") as f:
     for line in f:
@@ -51,10 +51,11 @@ def gen_data(relation):
                     # #     temp = upperBound
                     # line.append(str(temp))
             S.add(tuple(line))
-        # output lines in S in lex order
-        S = sorted(S)
-        for line in S:
             f.write("|".join(line) + "\n")
+        # output lines in S in lex order
+        # S = sorted(S)
+        # for line in S:
+        #     f.write("|".join(line) + "\n")
 
 for relation in filenames:
     gen_data(relation)

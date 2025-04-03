@@ -128,10 +128,24 @@ class Query{
             return cardinalities[i];
         }
 
-        vector<int> getNeighborRels(int x) {
+        /**
+         * @brief Retrieves the neighboring relations of a given relation index.
+         * 
+         * This function identifies all the relations that are connected to the 
+         * specified relation index `x` through shared variables. It starts from 
+         * the `k`-th variable in the relation and collects all unique neighboring 
+         * relations, excluding the relation itself.
+         * 
+         * @param x The index of the relation for which neighbors are to be found.
+         * @param k (Optional) The starting index of the variables in the relation 
+         *          to consider. Defaults to 0.
+         * @return A vector of integers representing the indices of neighboring 
+         *         relations.
+         */
+        vector<int> getNeighborRels(int x, int k = 0) {
             set<int> neighbors;
             int var, neighbor;
-            for(int i = 0; i < getRelations()[x].size(); i++) {
+            for(int i = k; i < getRelations()[x].size(); i++) {
                 var = getRelations()[x][i]; // get the variable index
                 for(int j = 0; j < getRels(var).size(); j++) {
                     neighbor = getRels(var)[j]; // get the relation index
