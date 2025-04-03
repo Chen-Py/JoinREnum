@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include "Index.hpp"
+#include "SplitBucket.hpp"
 #include "JoinTree.hpp"
 #include "ReadConfig.hpp"
 using namespace std;
@@ -31,10 +32,9 @@ int main() {
     JoinTree tree(q, CO);
     tree.print();
     tree.printChildren();
-    // for(CountOracle<int>* co : CO) {
-    //     cout << "Count Oracle:-----------------" << endl;
-    //     co->print();
+    // for(int i = 0; i < CO.size(); i++) {
+    //     cout << "Count Oracle of R" << i << "---------------" << endl;
+    //     CO[i]->print();
     // }
-    // cout << CO[0]->sumCnt(Point<int>({1}),Point<int>({4})) << endl;
     return 0;
 }

@@ -3,11 +3,26 @@ using namespace std;
 class JoinTree {
 private:
     vector<CountOracle<int>*> CO;
-public:
-    int root;
     vector<vector<int> > children; // children[i] = list of children of node i
     vector<int> parent; // parent[i] = parent of node i, -1 if root
     vector<vector<vector<int> > > joinPos; // joinPos[i][j] = the join positions of the edge between i and j
+    
+    void preProcessing(int node) {
+        if(node < 0 || node >= (int)children.size()) return;
+        for(int i = 0; i < children[node].size(); i++) preProcessing(children[node][i]);
+        for(int i = 0; i < CO[node]->points.size(); i++) {
+            for(int j = 0; j < children[node].size(); j++) {
+                vector<int> joinVals = {};
+                for(int pos : joinPos[node][j]) joinVals.push_back(CO[node]->points[i][pos]);
+                CO[node]->points[i].cnt *= CO[children[node][j]]->sumCnt(Point<int>(joinVals), Point<int>(joinVals));
+            }
+            if(i > 0) CO[node]->points[i].cnt += CO[node]->points[i - 1].cnt;
+        }
+        return;
+    }
+
+public:
+    int root;
 
     JoinTree(){}
 
@@ -54,28 +69,13 @@ public:
         preProcessing(root);
     }
 
-    void preProcessing(int node) {
-        if(node < 0 || node >= (int)children.size()) return;
-        for(int i = 0; i < children[node].size(); i++) preProcessing(children[node][i]);
-        for(int i = 0; i < CO[node]->points.size(); i++) {
-            for(int j = 0; j < children[node].size(); j++) {
-                vector<int> joinVals = {};
-                for(int pos : joinPos[node][j]) joinVals.push_back(CO[node]->points[i][pos]);
-                CO[node]->points[i].cnt *= CO[children[node][j]]->sumCnt(Point<int>(joinVals), Point<int>(joinVals));
-            }
-            if(i > 0) CO[node]->points[i].cnt += CO[node]->points[i - 1].cnt;
-        }
-        return;
-    }
 
     void printTree(int nodeID, int depth = 0) {
-        // Print the current node with indentation based on depth
         for (int i = 0; i < depth; i++) {
-            cout << "| "; // Indent for each level of depth
+            cout << "| ";
         }
         cout << "R" << nodeID << endl;
 
-        // Recursively print children
         for (int childID : children[nodeID]) {
             printTree(childID, depth + 1);
         }
@@ -86,13 +86,13 @@ public:
         for(int i = 0; i < children.size(); i++) {
             cout << "R" << i << " has children: ";
             for(int j = 0; j < children[i].size(); j++) {
-                cout << "R" << children[i][j] << "("; // print the children of the current node
+                cout << "R" << children[i][j] << "(";
                 for(int k = 0; k < joinPos[i][j].size() - 1; k++) {
                     cout << joinPos[i][j][k] << ", ";
                 }
                 cout << joinPos[i][j][joinPos[i][j].size() - 1] << "); ";
             }
-            cout << endl; // new line for the next node
+            cout << endl;
         }
     }
 
