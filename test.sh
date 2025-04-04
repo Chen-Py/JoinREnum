@@ -1,1 +1,1 @@
-g++ test.cpp -O3 -g -o test -lglpk && ./test
+g++ test.cpp -O3 -g -o test.exe -lglpk && ./test
