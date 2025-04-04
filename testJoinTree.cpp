@@ -1,6 +1,5 @@
 #include <bits/stdc++.h>
 #include "Index.hpp"
-#include "SplitBucket.hpp"
 #include "JoinTree.hpp"
 #include "ReadConfig.hpp"
 using namespace std;
@@ -32,9 +31,36 @@ int main() {
     JoinTree tree(q, CO);
     tree.print();
     tree.printChildren();
-    // for(int i = 0; i < CO.size(); i++) {
-    //     cout << "Count Oracle of R" << i << "---------------" << endl;
-    //     CO[i]->print();
-    // }
+    for(int i = 0; i < CO.size(); i++) {
+        cout << "Count Oracle of R" << i << "---------------" << endl;
+        CO[i]->print();
+    }
+    Bucket B = Bucket({2, 2, 1}, {2, 4, 6});
+    B.print();
+    cout << tree.treeUpp(B) << endl;
+    vector<vector<int> > relation = q.getRelations();
+    vector<pair<vector<int>, vector<int> > > bound = {};
+    for(int i = 0; i < relation.size(); i++) {
+        vector<int> lower_bound = {};
+        vector<int> upper_bound = {};
+        for(int j = 0; j < relation[i].size(); j++) {
+            lower_bound.push_back(B.getLowerBound()[relation[i][j]]);
+            upper_bound.push_back(B.getUpperBound()[relation[i][j]]);
+        }
+        bound.push_back({lower_bound, upper_bound});
+    }
+    for(int i = 0; i < bound.size(); i++) {
+        cout << "Lower bound of relation " << i << ": ";
+        for(int j = 0; j < bound[i].first.size(); j++) {
+            cout << bound[i].first[j] << " ";
+        }
+        cout << endl;
+        cout << "Upper bound of relation " << i << ": ";
+        for(int j = 0; j < bound[i].second.size(); j++) {
+            cout << bound[i].second[j] << " ";
+        }
+        cout << endl;
+    }
+    cout << tree.treeUpp(B.getSplitDim(), bound) << endl;
     return 0;
 }

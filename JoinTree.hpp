@@ -3,10 +3,11 @@ using namespace std;
 class JoinTree {
 private:
     vector<CountOracle<int>*> CO;
+    vector<vector<int> > relation; // relations[i][j] = the j-th attribute of the i-th relation
     vector<vector<int> > children; // children[i] = list of children of node i
     vector<int> parent; // parent[i] = parent of node i, -1 if root
     vector<vector<vector<int> > > joinPos; // joinPos[i][j] = the join positions of the edge between i and j
-    
+
     void preProcessing(int node) {
         if(node < 0 || node >= (int)children.size()) return;
         for(int i = 0; i < children[node].size(); i++) preProcessing(children[node][i]);
@@ -21,6 +22,36 @@ private:
         return;
     }
 
+    
+
+    int treeUpp(int node, Bucket &B) {
+        vector<int> lower_bound = {};
+        vector<int> upper_bound = {};
+        for(int j = 0; j < relation[node].size(); j++) {
+            lower_bound.push_back(B.getLowerBound()[relation[node][j]]);
+            upper_bound.push_back(B.getUpperBound()[relation[node][j]]);
+        }
+        int sum_cnt = CO[node]->sumCnt(Point<int>(lower_bound), Point<int>(upper_bound));
+        if(!sum_cnt) return 0;
+        else if(relation[node][relation[node].size() - 1] < B.getSplitDim()) {
+            int temp = 1;
+            for(int child : children[node]) temp *= treeUpp(child, B);
+            return temp;
+        }
+        else return sum_cnt;
+    }
+
+    int treeUpp(int node, int splitDim, vector<pair<vector<int>, vector<int> > > &bound) {
+        int sum_cnt = CO[node]->sumCnt(Point<int>(bound[node].first), Point<int>(bound[node].second));
+        if(!sum_cnt) return 0;
+        else if(relation[node][relation[node].size() - 1] < splitDim) {
+            int temp = 1;
+            for(int child : children[node]) temp *= treeUpp(child, splitDim, bound);
+            return temp;
+        }
+        else return sum_cnt;
+    }
+
 public:
     int root;
 
@@ -29,6 +60,7 @@ public:
     JoinTree(Query q, vector<CountOracle<int>*> CO) : CO(CO) {
         queue<int> que;
         root = 0;
+        relation = q.getRelations();
         children = vector<vector<int> >(q.getRelNames().size(), vector<int>());
         joinPos = vector<vector<vector<int > > >(q.getRelNames().size(), vector<vector<int> >());
         parent = vector<int>(q.getRelNames().size(), -1);
@@ -69,6 +101,13 @@ public:
         preProcessing(root);
     }
 
+    int treeUpp(int splitDim, vector<pair<vector<int>, vector<int> > > &bound) {
+        return treeUpp(root, splitDim, bound);
+    }
+    
+    int treeUpp(Bucket &B) {
+        return treeUpp(root, B);
+    }
 
     void printTree(int nodeID, int depth = 0) {
         for (int i = 0; i < depth; i++) {
