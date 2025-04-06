@@ -1,6 +1,5 @@
 #include <bits/stdc++.h>
 #include "Index.hpp"
-#include "JoinTree.hpp"
 #include "ReadConfig.hpp"
 using namespace std;
 int main() {
@@ -28,7 +27,7 @@ int main() {
     //         cout << "Relation " << i << " has neighbor: " << neighbors[j] << endl; // print the neighbors of the current relation
     //     }
     // }
-    JoinTree tree(q, CO);
+    JoinTree tree = idx.jt;
     tree.print();
     tree.printChildren();
     for(int i = 0; i < CO.size(); i++) {

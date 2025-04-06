@@ -2,6 +2,7 @@
 #include "AGM.hpp"
 #include "Parcel.h"
 #include "SplitBucket.hpp"
+#include "JoinTree.hpp"
 using namespace std;
 
 class Index {
@@ -12,6 +13,7 @@ class Index {
         
     public:
         Query q;
+        JoinTree jt;
         int cntCacheHit = 0;
         int cntTotalCall = 0;
         int cntAGMCall = 0;
@@ -56,6 +58,7 @@ class Index {
                 tbl.loadFromFile(filenames.at(relName), numLines.at(relName), columns);
                 tables.push_back(tbl);
             }
+            jt = JoinTree(q, getCountOracles());
         }
 
         vector<CountOracle<int>* > getCountOracles() {
@@ -85,9 +88,9 @@ class Index {
 
         int AGMforBucket(Bucket B) {
             cntAGMCall++;
-            // record total AGM time
             int relnum = q.getRelations().size();
             vector<int> cardinalities;
+            // vector<pair<vector<int>, vector<int> > > bounds;
             for(int i = 0; i < relnum; i++) {
                 vector<int> lower_bound = {};
                 vector<int> upper_bound = {};
@@ -95,7 +98,7 @@ class Index {
                     lower_bound.push_back(B.getLowerBound()[q.getRelations()[i][j]]);
                     upper_bound.push_back(B.getUpperBound()[q.getRelations()[i][j]]);
                 }
-                // record total count oracle time
+                // bounds.push_back({lower_bound, upper_bound});
                 auto startCountOracle = chrono::high_resolution_clock::now();
                 cardinalities.push_back(tables[i].count(lower_bound, upper_bound));
                 auto endCountOracle = chrono::high_resolution_clock::now();
@@ -108,6 +111,7 @@ class Index {
             auto endAGM = chrono::high_resolution_clock::now();
             chrono::duration<double> elapsedAGM = endAGM - startAGM;
             totalAGMTime += elapsedAGM.count();
+            // ans = min(ans, (double)jt.treeUpp(B.getSplitDim(), bounds));
             return ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans);
         }
 
