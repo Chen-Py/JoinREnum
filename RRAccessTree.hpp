@@ -87,7 +87,7 @@ private:
         if (AGM < 0) AGM = idx.AGMforBucket(B);
         if (B.getSplitDim() == B.getDim()) return 1 - AGM;
         if (!node) {
-            vector<pair<Bucket, int> > children = idx.split(B);
+            vector<pair<Bucket, int> > children = idx.split(B, AGM);
             node = new RRAccessTreeNode(B, AGM, children, vector<RRAccessTreeNode*>(children.size(), NULL));
         }
         int emptyright = node->children_buckets.size() > 0 ? getEmptyRight(node->children_buckets[node->children_buckets.size() - 1].first, node->children_pointers[node->children_pointers.size() - 1], node->children_buckets[node->children_buckets.size() - 1].second) : 0;
@@ -99,7 +99,7 @@ private:
         if(B.getSplitDim() == B.getDim()) return make_pair(true, B.getLowerBound());
         if(AGM < 0) AGM = idx.AGMforBucket(B);
         if (!node) {
-            vector<pair<Bucket, int> > children = idx.split(B);
+            vector<pair<Bucket, int> > children = idx.split(B, AGM);
             node = new RRAccessTreeNode(B, AGM, children, vector<RRAccessTreeNode*>(children.size(), NULL));
         }
         if(offset + AGM - node->emptySize < k)

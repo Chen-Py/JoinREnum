@@ -9,11 +9,12 @@ class Index {
     private:
         vector<Table<Parcel> > tables;
         map<Bucket, vector<pair<Bucket, int> > > bucketSplitCache = map<Bucket, vector<pair<Bucket, int> > >();
-        Bucket FB;
         
     public:
         Query q;
         JoinTree jt;
+        Bucket FB;
+        vector<vector<int> > R;
         int cntCacheHit = 0;
         int cntTotalCall = 0;
         int cntAGMCall = 0;
@@ -22,6 +23,7 @@ class Index {
         double totalCountOracleTime = 0;
         double totalSplitTime = 0;
         double totalCacheHitTime = 0;
+        double totalBoundPrepareTime = 0;
 
         Index() {};
 
@@ -59,6 +61,17 @@ class Index {
                 tables.push_back(tbl);
             }
             jt = JoinTree(q, getCountOracles());
+            R = q.getRelations();
+            int varnum = q.getVarNumber();
+            vector<int> lowerBound(varnum, 2147483647);
+            vector<int> upperBound(varnum, -2147483648);
+            for(int i = 0; i < R.size(); i++) {
+                for(int j = 0; j < R[i].size(); j++) {
+                    lowerBound[R[i][j]] = min(lowerBound[R[i][j]], tables[i].getLowerBounds()[j]);
+                    upperBound[R[i][j]] = max(upperBound[R[i][j]], tables[i].getUpperBounds()[j]);
+                }
+            }
+            FB = {lowerBound, upperBound};
         }
 
         vector<CountOracle<int>* > getCountOracles() {
@@ -74,51 +87,50 @@ class Index {
         }
 
         Bucket getFullBucket() {
-            int varnum = q.getVarNumber();
-            vector<int> lowerBound(varnum, 2147483647);
-            vector<int> upperBound(varnum, -2147483648);
-            for(int i = 0; i < q.getRelations().size(); i++) {
-                for(int j = 0; j < q.getRelations()[i].size(); j++) {
-                    lowerBound[q.getRelations()[i][j]] = min(lowerBound[q.getRelations()[i][j]], tables[i].getLowerBounds()[j]);
-                    upperBound[q.getRelations()[i][j]] = max(upperBound[q.getRelations()[i][j]], tables[i].getUpperBounds()[j]);
-                }
-            }
-            return {lowerBound, upperBound};
+            return FB;
         }
 
         int AGMforBucket(Bucket B) {
-            cntAGMCall++;
-            int relnum = q.getRelations().size();
-            vector<int> cardinalities;
+            
+            // auto startAGM = chrono::high_resolution_clock::now();
+            // cntAGMCall++;
+            int relnum = R.size();
+            vector<int> cardinalities(relnum, 0);
             // vector<pair<vector<int>, vector<int> > > bounds;
+            vector<int> lower_bound = {};
+            vector<int> upper_bound = {};
             for(int i = 0; i < relnum; i++) {
-                vector<int> lower_bound = {};
-                vector<int> upper_bound = {};
-                for(int j = 0; j < q.getRelations()[i].size(); j++) {
-                    lower_bound.push_back(B.getLowerBound()[q.getRelations()[i][j]]);
-                    upper_bound.push_back(B.getUpperBound()[q.getRelations()[i][j]]);
+                // auto startCountOracle = chrono::high_resolution_clock::now();
+                lower_bound = vector<int>(R[i].size(), 0);
+                upper_bound = vector<int>(R[i].size(), 0);
+                for(int j = 0; j < R[i].size(); j++) {
+                    lower_bound[j] = B.lowerBound[R[i][j]];
+                    upper_bound[j] = B.upperBound[R[i][j]];
                 }
+                // auto endCountOracle = chrono::high_resolution_clock::now();
+                // chrono::duration<double> elapsedCountOracle = endCountOracle - startCountOracle;
+                // totalBoundPrepareTime += elapsedCountOracle.count();
                 // bounds.push_back({lower_bound, upper_bound});
-                auto startCountOracle = chrono::high_resolution_clock::now();
-                cardinalities.push_back(tables[i].count(lower_bound, upper_bound));
-                auto endCountOracle = chrono::high_resolution_clock::now();
-                chrono::duration<double> elapsedCountOracle = endCountOracle - startCountOracle;
-                totalCountOracleTime += elapsedCountOracle.count();
+                // startCountOracle = chrono::high_resolution_clock::now();
+                cardinalities[i] = tables[i].count(lower_bound, upper_bound);
+                // endCountOracle = chrono::high_resolution_clock::now();
+                // elapsedCountOracle = endCountOracle - startCountOracle;
+                // totalCountOracleTime += elapsedCountOracle.count();
             }
             
-            auto startAGM = chrono::high_resolution_clock::now();
             double ans = q.AGM(cardinalities);
-            auto endAGM = chrono::high_resolution_clock::now();
-            chrono::duration<double> elapsedAGM = endAGM - startAGM;
-            totalAGMTime += elapsedAGM.count();
+            // auto endAGM = chrono::high_resolution_clock::now();
+            // chrono::duration<double> elapsedAGM = endAGM - startAGM;
+            // totalAGMTime += elapsedAGM.count();
             // ans = min(ans, (double)jt.treeUpp(B.getSplitDim(), bounds));
             return ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans);
         }
 
-        vector<pair<Bucket, int> > split(Bucket B){
+        vector<pair<Bucket, int> > split(Bucket B, int AGM = -1){
             cntSplitCall++;
+            if(AGM < 0)AGM = AGMforBucket(B);
             int splitDim = B.getSplitDim();
-            int AGM = AGMforBucket(B);
+            // int AGM = AGMforBucket(B);
             if(AGM == 0)return {};
             
             long long l = B.getLowerBound()[splitDim], r = B.getUpperBound()[splitDim], mid;

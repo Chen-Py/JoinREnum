@@ -5,9 +5,9 @@ using namespace std;
 class Enumerator {
 
 private:
+public:
     RRAccessTree access_tree;
     BanPickTree bp;
-public:
 
     Enumerator(
         unordered_map<string, vector<string> > relations,
