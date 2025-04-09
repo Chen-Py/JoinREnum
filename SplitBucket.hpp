@@ -84,7 +84,7 @@ class Bucket {
         }
 
         Bucket replace(int lower, int upper) const {
-            Bucket newBucket = Bucket(lowerBound, upperBound);
+            Bucket newBucket(lowerBound, upperBound);
             newBucket.replaceSelf(lower, upper);
             return newBucket;
         }
