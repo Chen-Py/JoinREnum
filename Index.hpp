@@ -45,12 +45,12 @@ class Index {
         // }
 
         void preProcessing(const unordered_map<string, vector<string> >& relations, const unordered_map<string, string>& filenames, const unordered_map<string, int>& numLines) {
-            for(int i = 0; i < q.getRelNames().size(); i++) {
+            for(size_t i = 0; i < q.getRelNames().size(); i++) {
                 string relName = q.getRelNames()[i];
                 Table<Parcel> tbl;
                 vector<int> columns;
-                for(int j = 0; j < q.getRelVars()[i].size(); j++) {
-                    for(int k = 0; k < relations.at(relName).size(); k++) {
+                for(size_t j = 0; j < q.getRelVars()[i].size(); j++) {
+                    for(size_t k = 0; k < relations.at(relName).size(); k++) {
                         if(q.getRelVars()[i][j] == relations.at(relName)[k]) {
                             columns.push_back(k);
                             break;
@@ -65,8 +65,8 @@ class Index {
             int varnum = q.getVarNumber();
             vector<int> lowerBound(varnum, 2147483647);
             vector<int> upperBound(varnum, -2147483648);
-            for(int i = 0; i < R.size(); i++) {
-                for(int j = 0; j < R[i].size(); j++) {
+            for(size_t i = 0; i < R.size(); i++) {
+                for(size_t j = 0; j < R[i].size(); j++) {
                     lowerBound[R[i][j]] = min(lowerBound[R[i][j]], tables[i].getLowerBounds()[j]);
                     upperBound[R[i][j]] = max(upperBound[R[i][j]], tables[i].getUpperBounds()[j]);
                 }
@@ -76,7 +76,7 @@ class Index {
 
         vector<CountOracle<int>* > getCountOracles() {
             vector<CountOracle<int>* > CO;
-            for(int i = 0; i < tables.size(); i++) {
+            for(size_t i = 0; i < tables.size(); i++) {
                 CO.push_back(&tables[i].rt);
             }
             return CO;
@@ -99,11 +99,11 @@ class Index {
             // vector<pair<vector<int>, vector<int> > > bounds;
             vector<int> lower_bound = {};
             vector<int> upper_bound = {};
-            for(int i = 0; i < relnum; i++) {
+            for(size_t i = 0; i < relnum; i++) {
                 // auto startCountOracle = chrono::high_resolution_clock::now();
                 lower_bound = vector<int>(R[i].size(), 0);
                 upper_bound = vector<int>(R[i].size(), 0);
-                for(int j = 0; j < R[i].size(); j++) {
+                for(size_t j = 0; j < R[i].size(); j++) {
                     lower_bound[j] = B.lowerBound[R[i][j]];
                     upper_bound[j] = B.upperBound[R[i][j]];
                 }
@@ -192,7 +192,7 @@ class Index {
             mt19937 gen(rd());
             uniform_int_distribution<> distr(1, AGM);
             int p = distr(gen);
-            for(int i = 0; i < sons.size(); i++){
+            for(size_t i = 0; i < sons.size(); i++){
                 pair<Bucket, int> son = sons[i];
                 if(p <= son.second)return sample(son.first, son.second);
                 p -= son.second;
@@ -210,7 +210,7 @@ class Index {
         //     if(AGM < 0)AGM = AGMforBucket(B);
         //     if(B.getSplitDim() == B.getDim())return make_pair(true, B.getLowerBound());
         //     vector<pair<Bucket, int> > sons = split(B);
-        //     for(int i = 0; i < sons.size(); i++){
+        //     for(size_t i = 0; i < sons.size(); i++){
         //         pair<Bucket, int> son = sons[i];
         //         if(k <= son.second)return randomAccess(son.first, k, son.second);
         //         k -= son.second;
@@ -253,7 +253,7 @@ class Index {
             totalCacheHitTime += elapsedCacheHit.count();
             // vector<pair<Bucket, int> > sons = split(B);
             int temp = 0;
-            for(int i = 0; i < sons.size(); i++){
+            for(size_t i = 0; i < sons.size(); i++){
                 // cout << "SON::" << i <<": ";
                 // sons[i].first.print();
                 temp += sons[i].second;
@@ -307,7 +307,7 @@ class Index {
             totalCacheHitTime += elapsedCacheHit.count();
             // vector<pair<Bucket, int> > sons = split(B);
             int temp = 0;
-            for(int i = 0; i < sons.size(); i++){
+            for(size_t i = 0; i < sons.size(); i++){
                 pair<Bucket, int> son = sons[i];
                 if(k - offset - temp <= son.second){
                     pair<bool, vector<int> > res = randomAccess_opt(son.first, k, offset + temp, son.second);
@@ -334,7 +334,7 @@ class Index {
             if(B.getSplitDim() == B.getDim())return make_pair(true, B.getLowerBound());
             vector<pair<Bucket, int> > sons = split(B);
             int temp = 0;
-            for(int i = 0; i < sons.size(); i++){
+            for(size_t i = 0; i < sons.size(); i++){
                 pair<Bucket, int> son = sons[i];
                 if(k - offset - temp <= son.second)return randomAccess(son.first, k, offset + temp, son.second);
                 // k -= son.second;
@@ -349,10 +349,10 @@ class Index {
             B.print();
             int relnum = q.getRelations().size();
             vector<int> cardinalities;
-            for(int i = 0; i < relnum; i++) {
+            for(size_t i = 0; i < relnum; i++) {
                 vector<int> lower_bound = {};
                 vector<int> upper_bound = {};
-                for(int j = 0; j < q.getRelations()[i].size(); j++) {
+                for(size_t j = 0; j < q.getRelations()[i].size(); j++) {
                     lower_bound.push_back(B.getLowerBound()[q.getRelations()[i][j]]);
                     upper_bound.push_back(B.getUpperBound()[q.getRelations()[i][j]]);
                 }
@@ -370,12 +370,12 @@ class Index {
             if(B.getSplitDim() == B.getDim())return;
             vector<pair<Bucket, int> > sons = split(B);
             int tempoffset = offset;
-            for(int i = 0; i < sons.size(); i++){
+            for(size_t i = 0; i < sons.size(); i++){
                 pair<Bucket, int> son = sons[i];
                 printBucketInfo(son.first, tempoffset, son.second);
                 tempoffset += son.second;
             }
-            for(int i = 0; i < sons.size(); i++){
+            for(size_t i = 0; i < sons.size(); i++){
                 pair<Bucket, int> son = sons[i];
                 printBucketTree(son.first, offset, son.second);
                 offset += son.second;
@@ -387,14 +387,14 @@ class Index {
             if(AGM < 0)AGM = AGMforBucket(B);
             if(B.getSplitDim() == B.getDim()){
                 cout << "Res(";
-                for(int i = 0; i < B.getDim() - 1; i++) {
+                for(size_t i = 0; i < B.getDim() - 1; i++) {
                     cout << B.getLowerBound()[i] << ",";
                 }
                 cout << B.getLowerBound()[B.getDim() - 1] << ")"<< endl;
                 return;
             }
             vector<pair<Bucket, int> > sons = split(B);
-            for(int i = 0; i < sons.size(); i++){
+            for(size_t i = 0; i < sons.size(); i++){
                 pair<Bucket, int> son = sons[i];
                 enumeration(son.first, son.second);
             }
@@ -402,7 +402,7 @@ class Index {
         }
 
         void print(){
-            for(int i = 0; i < tables.size(); i++){
+            for(size_t i = 0; i < tables.size(); i++){
                 cout << "Relation: " << i << endl;
                 tables[i].print();
             }
