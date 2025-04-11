@@ -194,6 +194,53 @@ public:
     }
 
     /**
+     * @brief Finds the range of points within a specified range [pl, pr).
+     *
+     * This function returns a pair of iterators that represent the range of points
+     * in the given vector that fall within the specified range [pl, pr). The range
+     * is determined using `lower_bound` and `upper_bound` algorithms.
+     *
+     * @tparam T The type of the coordinates of the points.
+     * @param pl The lower bound point of the range.
+     * @param pr The upper bound point of the range.
+     * @param itl Iterator to the beginning of the range to search within.
+     * @param itr Iterator to the end of the range to search within.
+     * @return A pair of iterators:
+     *         - The first iterator points to the first element not less than `pl`.
+     *         - The second iterator points to the first element greater than `pr`.
+     */
+    pair<vector<Point<T> >::iterator, vector<Point<T> >::iterator> getRange(
+        Point<T> pl,
+        Point<T> pr,
+        vector<Point<T> >::iterator itl,
+        vector<Point<T> >::iterator itr) {
+        return make_pair(lower_bound(itl, itr, pl), upper_bound(itl, itr, pr));
+    }
+
+    /**
+     * @brief Retrieves the range of points within the specified bounds.
+     * 
+     * This function returns a pair of iterators representing the range of points
+     * in the `points` vector that fall between the given lower bound `pl` and 
+     * upper bound `pr`. The range is determined using `lower_bound` and 
+     * `upper_bound` functions.
+     * 
+     * @tparam T The type of the coordinates in the Point class.
+     * @param pl The lower bound point for the range.
+     * @param pr The upper bound point for the range.
+     * @return A pair of iterators:
+     *         - The first iterator points to the first element in the range 
+     *           that is not less than `pl`.
+     *         - The second iterator points to the first element in the range 
+     *           that is greater than `pr`.
+     */
+    pair<vector<Point<T> >::iterator, vector<Point<T> >::iterator> getRange(
+        Point<T> pl,
+        Point<T> pr) {
+        return make_pair(lower_bound(points.begin(), points.end(), pl), upper_bound(points.begin(), points.end(), pr));
+    }
+
+    /**
      * @brief Counts the number of elements in the given bucket.
      *
      * This function takes a vector of pairs, where each pair contains two elements of type T.
