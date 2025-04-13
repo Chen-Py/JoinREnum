@@ -90,8 +90,7 @@ class Index {
             return FB;
         }
 
-        int AGMforBucketWithIters(Bucket B) {
-            
+        pair<int, vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > > AGMforBucketWithIters(Bucket B) {
             // auto startAGM = chrono::high_resolution_clock::now();
             // cntAGMCall++;
             int relnum = R.size();
@@ -127,7 +126,7 @@ class Index {
             // chrono::duration<double> elapsedAGM = endAGM - startAGM;
             // totalAGMTime += elapsedAGM.count();
             // ans = min(ans, (double)jt.treeUpp(B.getSplitDim(), bounds));
-            return ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans);
+            return make_pair(ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans), iters);
         }
         
         int AGMforBucket(Bucket B) {
