@@ -40,7 +40,7 @@ public:
     Bucket B;
     vector<pair<Bucket, int> > children_buckets;
     vector<RRAccessTreeNode*> children_pointers;
-    vector<vector<Point<int> >::iterator > lower_iterator, upper_iterator;
+    vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > iters;
 
     /**
      * @brief Constructs an RRAccessTreeNode object with the specified parameters.

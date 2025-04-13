@@ -90,7 +90,7 @@ class Index {
             return FB;
         }
 
-        pair<int, vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > > AGMforBucketWithIters(Bucket B) {
+        pair<int, vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > > AGMforBucketWithIters(Bucket B, typename vector<Point<int> >::iterator itl, typename vector<Point<int> >::iterator itr) {
             // auto startAGM = chrono::high_resolution_clock::now();
             // cntAGMCall++;
             int relnum = R.size();
@@ -107,7 +107,7 @@ class Index {
                     lower_bound[j] = B.lowerBound[R[i][j]];
                     upper_bound[j] = B.upperBound[R[i][j]];
                 }
-                pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> range = tables[i].rt.getRange(lower_bound, upper_bound);
+                pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> range = tables[i].rt.getRange(lower_bound, upper_bound, itl, itr);
                 cardinalities[i] = range.second - range.first;
                 iters[i] = range;
                 // auto endCountOracle = chrono::high_resolution_clock::now();
