@@ -209,11 +209,11 @@ public:
      *         - The first iterator points to the first element not less than `pl`.
      *         - The second iterator points to the first element greater than `pr`.
      */
-    pair<vector<Point<T> >::iterator, vector<Point<T> >::iterator> getRange(
+    pair<typename vector<Point<T> >::iterator, typename vector<Point<T> >::iterator> getRange(
         Point<T> pl,
         Point<T> pr,
-        vector<Point<T> >::iterator itl,
-        vector<Point<T> >::iterator itr) {
+        typename vector<Point<T> >::iterator itl,
+        typename vector<Point<T> >::iterator itr) {
         return make_pair(lower_bound(itl, itr, pl), upper_bound(itl, itr, pr));
     }
 
@@ -234,7 +234,7 @@ public:
      *         - The second iterator points to the first element in the range 
      *           that is greater than `pr`.
      */
-    pair<vector<Point<T> >::iterator, vector<Point<T> >::iterator> getRange(
+    pair<typename vector<Point<T> >::iterator, typename vector<Point<T> >::iterator> getRange(
         Point<T> pl,
         Point<T> pr) {
         return make_pair(lower_bound(points.begin(), points.end(), pl), upper_bound(points.begin(), points.end(), pr));

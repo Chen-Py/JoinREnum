@@ -7,5 +7,5 @@ python dbgen.py
 
 Run the Experiment
 ```bash
-bash test.sh
+bash testEnumerator.sh
 ```

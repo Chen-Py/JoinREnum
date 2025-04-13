@@ -90,6 +90,46 @@ class Index {
             return FB;
         }
 
+        int AGMforBucketWithIters(Bucket B) {
+            
+            // auto startAGM = chrono::high_resolution_clock::now();
+            // cntAGMCall++;
+            int relnum = R.size();
+            vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > iters(relnum);
+            vector<int> cardinalities(relnum, 0);
+            // vector<pair<vector<int>, vector<int> > > bounds;
+            vector<int> lower_bound = {};
+            vector<int> upper_bound = {};
+            for(size_t i = 0; i < relnum; i++) {
+                // auto startCountOracle = chrono::high_resolution_clock::now();
+                lower_bound = vector<int>(R[i].size(), 0);
+                upper_bound = vector<int>(R[i].size(), 0);
+                for(size_t j = 0; j < R[i].size(); j++) {
+                    lower_bound[j] = B.lowerBound[R[i][j]];
+                    upper_bound[j] = B.upperBound[R[i][j]];
+                }
+                pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> range = tables[i].rt.getRange(lower_bound, upper_bound);
+                cardinalities[i] = range.second - range.first;
+                iters[i] = range;
+                // auto endCountOracle = chrono::high_resolution_clock::now();
+                // chrono::duration<double> elapsedCountOracle = endCountOracle - startCountOracle;
+                // totalBoundPrepareTime += elapsedCountOracle.count();
+                // bounds.push_back({lower_bound, upper_bound});
+                // startCountOracle = chrono::high_resolution_clock::now();
+                // cardinalities[i] = tables[i].count(lower_bound, upper_bound);
+                // endCountOracle = chrono::high_resolution_clock::now();
+                // elapsedCountOracle = endCountOracle - startCountOracle;
+                // totalCountOracleTime += elapsedCountOracle.count();
+            }
+            
+            double ans = q.AGM(cardinalities);
+            // auto endAGM = chrono::high_resolution_clock::now();
+            // chrono::duration<double> elapsedAGM = endAGM - startAGM;
+            // totalAGMTime += elapsedAGM.count();
+            // ans = min(ans, (double)jt.treeUpp(B.getSplitDim(), bounds));
+            return ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans);
+        }
+        
         int AGMforBucket(Bucket B) {
             
             // auto startAGM = chrono::high_resolution_clock::now();
