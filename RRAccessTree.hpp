@@ -3,62 +3,68 @@
 
 /**
  * @class RRAccessTreeNode
- * @brief Represents a node in an RR Access Tree structure.
+ * @brief Represents a node in an Relaxed Random Access Tree structure.
  * 
- * This class encapsulates the properties and behavior of a node in an RR Access Tree.
- * Each node contains a bucket, an AGM value, a list of child buckets
- * paired with their associated integer values, and pointers to its child nodes.
+ * This class encapsulates the properties and behavior of a node in an RRAccess Tree.
+ * Each node contains a bucket, a collection of child buckets, and pointers to its child nodes.
+ * It also calculates and stores the empty size of the node based on the difference between
+ * the AGM of its bucket and the sum of the AGMs of its child buckets.
  * 
  * @details
- * The class provides a constructor to initialize the node with its bucket, AGM value,
- * child buckets, and child pointers. It also calculates the `emptySize` of the node,
- * which is the difference between the AGM value and the sum of the AGM values of its children.
- * Additionally, the class includes a `print` method to display the node's information.
+ * The RRAccessTreeNode class provides a constructor to initialize the node with a bucket,
+ * child buckets, and child pointers. It also includes a method to print the node's details.
  * 
- * @note
- * The `Bucket` class and its `print` method are assumed to be defined elsewhere.
+ * @note The `emptySize` is computed during construction and represents the remaining size
+ * after accounting for the AGMs of the child buckets.
  * 
- * @var RRAccessTreeNode::AGM
- * The AGM value for this node.
+ * @var emptySize
+ * The remaining size of the node after subtracting the sum of the AGMs of its child buckets
+ * from the AGM of its own bucket.
  * 
- * @var RRAccessTreeNode::emptySize
- * The difference between the AGM value and the sum of the AGM values of the child buckets.
- * 
- * @var RRAccessTreeNode::B
+ * @var B
  * The bucket associated with this node.
  * 
- * @var RRAccessTreeNode::children_buckets
- * A vector of pairs, where each pair consists of a child bucket and its associated integer value.
+ * @var children_buckets
+ * A vector containing the buckets of the child nodes.
  * 
- * @var RRAccessTreeNode::children_pointers
+ * @var children_pointers
  * A vector of pointers to the child nodes of this node.
+ * 
+ * @fn RRAccessTreeNode(Bucket B, vector<Bucket> children_buckets, vector<RRAccessTreeNode*> children_pointers)
+ * @brief Constructs an RRAccessTreeNode object with the specified parameters.
+ * 
+ * @param B The bucket associated with this node.
+ * @param children_buckets A vector of buckets representing the child nodes.
+ * @param children_pointers A vector of pointers to the child nodes of this node.
+ * 
+ * @fn void print()
+ * @brief Prints the details of the node, including its AGM, size, and bucket information.
  */
 class RRAccessTreeNode {
 
 public:
-    int AGM, emptySize;
+    int emptySize;
     Bucket B;
-    vector<pair<Bucket, int> > children_buckets;
+    vector<Bucket> children_buckets;
     vector<RRAccessTreeNode*> children_pointers;
 
     /**
      * @brief Constructs an RRAccessTreeNode object with the specified parameters.
      * 
      * @param B The bucket associated with this node.
-     * @param AGM The AGM (Aggregate Measure) value for this node.
-     * @param children_buckets A vector of pairs, where each pair consists of a child bucket and its associated integer value.
+     * @param children_buckets A vector of buckets.
      * @param children_pointers A vector of pointers to the child nodes of this node.
      */
-    RRAccessTreeNode(Bucket B, int AGM, vector<pair<Bucket, int> > children_buckets, vector<RRAccessTreeNode*> children_pointers) : B(B), AGM(AGM), children_buckets(children_buckets), children_pointers(children_pointers) {
+    RRAccessTreeNode(Bucket B, vector<Bucket> children_buckets, vector<RRAccessTreeNode*> children_pointers) : B(B), children_buckets(children_buckets), children_pointers(children_pointers) {
         int sumChildrenAGM = 0;
         for(int i = 0; i < children_buckets.size(); i++) {
-            sumChildrenAGM += children_buckets[i].second;
+            sumChildrenAGM += children_buckets[i].AGM;
         }
-        emptySize = AGM - sumChildrenAGM;
+        emptySize = B.AGM - sumChildrenAGM;
     }
 
     void print() {
-        cout << "AGM: " << AGM << ", size: " << children_buckets.size() << ", ";
+        cout << "AGM: " << B.AGM << ", size: " << children_buckets.size() << ", ";
         B.print();
     }
 };
@@ -69,53 +75,52 @@ private:
 
     
     /**
-     * @brief Recursively computes the sum empty sizes of the right side of a given bucket 
-     * and its right-most child in an RRAccessTree.
+     * @brief Recursively calculates the empty size of the rightmost subtree in an RRAccessTree.
      *
-     * This function recursively calculates the empty size on the right side of a bucket
-     * by traversing the RRAccessTree structure. If the node corresponding to the bucket
-     * does not exist, it creates the node and its children based on the bucket's split.
+     * This function determines the "empty right" size of a given bucket in the RRAccessTree.
+     * It initializes the AGM (Aggregate Measure) and iterators for the bucket if not already set,
+     * splits the bucket into child buckets if the node is null, and recursively processes the
+     * rightmost child bucket to compute the empty size.
      *
-     * @param B The bucket for which the empty right size is to be calculated.
-     * @param node A reference to the pointer of the RRAccessTreeNode corresponding to the bucket.
-     *             If the node does not exist, it will be created.
-     * @param AGM (Optional) The AGM (Aggregate Measure) value for the bucket. If not provided
-     *            (default is -1), it will be computed using idx.AGMforBucket(B).
-     * @return The total empty size on the right side of the given bucket.
+     * @param B The bucket to process, containing data and metadata for the tree node.
+     * @param node A reference to the pointer of the current RRAccessTreeNode. If null, a new node
+     *             is created and initialized with child buckets and pointers.
+     * @return The total empty size of the rightmost subtree, including the current node's empty size.
      */
-    int getEmptyRight(Bucket B, RRAccessTreeNode* &node, int AGM = -1) {
-        if (AGM < 0) AGM = idx.AGMforBucket(B);
-        if (B.getSplitDim() == B.getDim()) return 1 - AGM;
+    int getEmptyRight(Bucket B, RRAccessTreeNode* &node) {
+        if (B.AGM < 0) idx.setAGMandIters(B);
+        if (B.getSplitDim() == B.getDim()) return 1 - B.AGM;
         if (!node) {
-            vector<pair<Bucket, int> > children = idx.split(B, AGM);
-            node = new RRAccessTreeNode(B, AGM, children, vector<RRAccessTreeNode*>(children.size(), NULL));
+            vector<Bucket> children = idx.splitBucket(B);
+            node = new RRAccessTreeNode(B, children, vector<RRAccessTreeNode*>(children.size(), NULL));
         }
-        int emptyright = node->children_buckets.size() > 0 ? getEmptyRight(node->children_buckets[node->children_buckets.size() - 1].first, node->children_pointers[node->children_pointers.size() - 1], node->children_buckets[node->children_buckets.size() - 1].second) : 0;
+        int emptyright = node->children_buckets.size() > 0 ? getEmptyRight(node->children_buckets[node->children_buckets.size() - 1], node->children_pointers[node->children_pointers.size() - 1]) : 0;
 
         return node->emptySize + emptyright;
     }
 
-    pair<bool, vector<int> > RRAccess(int k, Bucket B, RRAccessTreeNode* &node, int offset = 0, int AGM = -1) {
+
+    pair<bool, vector<int> > RRAccess(int k, Bucket B, RRAccessTreeNode* &node, int offset = 0) {
         if(B.getSplitDim() == B.getDim()) return make_pair(true, B.getLowerBound());
-        if(AGM < 0) AGM = idx.AGMforBucket(B);
+        if(B.AGM < 0) idx.setAGMandIters(B);
         if (!node) {
-            vector<pair<Bucket, int> > children = idx.split(B, AGM);
-            node = new RRAccessTreeNode(B, AGM, children, vector<RRAccessTreeNode*>(children.size(), NULL));
+            vector<Bucket> children = idx.splitBucket(B);
+            node = new RRAccessTreeNode(B, children, vector<RRAccessTreeNode*>(children.size(), NULL));
         }
-        if(offset + AGM - node->emptySize < k)
-            return make_pair(false, vector<int>({offset + AGM - getEmptyRight(B, node, AGM) + 1, offset + AGM}));
+        if(offset + B.AGM - node->emptySize < k)
+            return make_pair(false, vector<int>({offset + B.AGM - getEmptyRight(B, node) + 1, offset + B.AGM}));
         int childAGM, temp = 0;
         for(int i = 0; i < node->children_buckets.size() - 1; i++) {
-            childAGM = node->children_buckets[i].second;
+            childAGM = node->children_buckets[i].AGM;
             if(offset + temp + childAGM >= k){
-                return RRAccess(k, node->children_buckets[i].first, node->children_pointers[i], offset + temp, childAGM);
+                return RRAccess(k, node->children_buckets[i], node->children_pointers[i], offset + temp);
             }
             else temp += childAGM;
         }
         int last = node->children_buckets.size() - 1;
-        pair<bool, vector<int> > res = RRAccess(k, node->children_buckets[last].first, node->children_pointers[last], offset + temp, node->children_buckets[last].second);
+        pair<bool, vector<int> > res = RRAccess(k, node->children_buckets[last], node->children_pointers[last], offset + temp);
         
-        if(!res.first && res.second[1] == offset + AGM - node->emptySize)return make_pair(false, vector<int>({res.second[0], offset + AGM}));
+        if(!res.first && res.second[1] == offset + B.AGM - node->emptySize)return make_pair(false, vector<int>({res.second[0], offset + B.AGM}));
         else return res;
     }
 
@@ -208,7 +213,7 @@ public:
      *           - if the operation fails, the vector is an trivial interval.
      */
     pair<bool, vector<int> > RRAccess(int k) {
-        return RRAccess(k, idx.getFullBucket(), root, 0, AGM);
+        return RRAccess(k, idx.getFullBucket(), root, 0);
     }
 
     void print(RRAccessTreeNode* node, int depth = 0) {
