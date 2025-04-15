@@ -1,13 +1,12 @@
 #include "Table.h"
 #include "AGM.hpp"
 #include "Parcel.h"
-#include "SplitBucket.hpp"
+#include "Bucket.hpp"
 #include "JoinTree.hpp"
 using namespace std;
 
 class Index {
     private:
-        vector<Table<Parcel> > tables;
         map<Bucket, vector<pair<Bucket, int> > > bucketSplitCache = map<Bucket, vector<pair<Bucket, int> > >();
         
     public:
@@ -15,6 +14,7 @@ class Index {
         JoinTree jt;
         Bucket FB;
         vector<vector<int> > R;
+        vector<Table<Parcel> > tables;
         int cntCacheHit = 0;
         int cntTotalCall = 0;
         int cntAGMCall = 0;
@@ -129,6 +129,31 @@ class Index {
             return make_pair(ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans), iters);
         }
         
+        void setAGMandIters(Bucket &B, const vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> >& iters = {}) {
+            int relnum = R.size();
+            B.iters = vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> >(relnum);
+            vector<int> cardinalities(relnum, 0);
+            vector<int> lower_bound = {};
+            vector<int> upper_bound = {};
+            for(size_t i = 0; i < relnum; i++) {
+                
+                lower_bound = vector<int>(R[i].size(), 0);
+                upper_bound = vector<int>(R[i].size(), 0);
+                
+                for(size_t j = 0; j < R[i].size(); j++) {
+                    lower_bound[j] = B.lowerBound[R[i][j]];
+                    upper_bound[j] = B.upperBound[R[i][j]];
+                }
+
+                if(iters.size() > 0) B.iters[i] = tables[i].rt.getRange(lower_bound, upper_bound, iters[i].first, iters[i].second);
+                else B.iters[i] = tables[i].rt.getRange(lower_bound, upper_bound);
+                cardinalities[i] = B.iters[i].second - B.iters[i].first;
+            }
+            double ans = q.AGM(cardinalities);
+            B.AGM = ceil(ans) - ans < 1e-5 ? ceil(ans) : int(ans);
+            return;
+        }
+
         int AGMforBucket(Bucket B) {
             
             // auto startAGM = chrono::high_resolution_clock::now();
@@ -219,6 +244,44 @@ class Index {
             Bucket Bright = B.replace(splitPos + 1, B.getUpperBound()[splitDim]);
             int AGMright = AGMforBucket(Bright);
             if(splitPos + 1 <= B.getUpperBound()[splitDim] && AGMright > 0)result.push_back(make_pair(Bright, AGMright));
+            return result;
+        }
+
+        vector<Bucket> splitBucket(Bucket B){
+            cntSplitCall++;
+            if(B.AGM < 0) setAGMandIters(B);
+            int splitDim = B.getSplitDim();
+            if(B.AGM == 0)return {};
+            
+            long long l = B.getLowerBound()[splitDim], r = B.getUpperBound()[splitDim], mid;
+            int splitPos = l;
+            Bucket Bleft;
+            while(l <= r){
+                mid = (l + r) >> 1;
+                Bleft = B.replace(B.getLowerBound()[splitDim], mid - 1);
+                setAGMandIters(Bleft, B.iters);
+                if(Bleft.AGM <= (B.AGM >> 1))splitPos = mid, l = mid + 1;
+                else r = mid - 1;
+            }
+            
+            vector<Bucket> result = {};
+            Bleft = B.replace(B.getLowerBound()[splitDim], splitPos - 1);
+            setAGMandIters(Bleft, B.iters);
+            if(splitPos - 1 >= B.getLowerBound()[splitDim] && Bleft.AGM > 0)result.push_back(Bleft);
+            
+            Bucket Bmid = B.replace(splitPos, splitPos);
+            setAGMandIters(Bmid, B.iters);
+            if(splitDim == B.getDim() - 1) {
+                if(Bmid.AGM > 0)result.push_back(Bmid);
+            }
+            else if(Bmid.AGM > 0) {
+                vector<Bucket> temp = splitBucket(Bmid);
+                result.insert(result.end(), temp.begin(), temp.end());
+            }
+
+            Bucket Bright = B.replace(splitPos + 1, B.getUpperBound()[splitDim]);
+            setAGMandIters(Bright, B.iters);
+            if(splitPos + 1 <= B.getUpperBound()[splitDim] && Bright.AGM > 0)result.push_back(Bright);
             return result;
         }
 

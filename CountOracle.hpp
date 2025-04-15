@@ -193,6 +193,14 @@ public:
         return upper_bound(points.begin(), points.end(), pr) - lower_bound(points.begin(), points.end(), pl);
     }
 
+    typename vector<Point<T> >::iterator getUpperBoundIter(vector<T> & vec) {
+        return upper_bound(points.begin(), points.end(), vec);
+    }
+
+    typename vector<Point<T> >::iterator getUpperBoundIter(vector<T> & vec, typename vector<Point<T> >::iterator itl, typename vector<Point<T> >::iterator itr) {
+        return upper_bound(itl, itr, vec);
+    }
+
     /**
      * @brief Finds the range of points within a specified range [pl, pr).
      *
