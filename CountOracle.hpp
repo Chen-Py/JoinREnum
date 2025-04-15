@@ -194,11 +194,11 @@ public:
     }
 
     typename vector<Point<T> >::iterator getUpperBoundIter(vector<T> & vec) {
-        return upper_bound(points.begin(), points.end(), vec);
+        return upper_bound(points.begin(), points.end(), Point<T>(vec));
     }
 
     typename vector<Point<T> >::iterator getUpperBoundIter(vector<T> & vec, typename vector<Point<T> >::iterator itl, typename vector<Point<T> >::iterator itr) {
-        return upper_bound(itl, itr, vec);
+        return upper_bound(itl, itr, Point<T>(vec));
     }
 
     /**
