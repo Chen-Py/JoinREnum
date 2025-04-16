@@ -72,6 +72,7 @@ class Index {
                 }
             }
             FB = {lowerBound, upperBound};
+            setAGMandIters(FB);
         }
 
         vector<CountOracle<int>* > getCountOracles() {
@@ -88,6 +89,16 @@ class Index {
 
         Bucket getFullBucket() {
             return FB;
+        }
+
+        void setAGM(Bucket &B) {
+            vector<int> cardinalities(B.iters.size());
+            for(size_t i = 0; i < cardinalities.size(); i++) {
+                cardinalities[i] = B.iters[i].second - B.iters[i].first;
+            }
+            double ans = q.AGM(cardinalities);
+            B.AGM = ceil(ans) - ans < 1e-5 ? ceil(ans) : int(ans);
+            return;
         }
 
         
@@ -211,23 +222,29 @@ class Index {
 
         vector<Bucket> splitBucket(Bucket B){
             cntSplitCall++;
+            // auto startSplit = chrono::high_resolution_clock::now();
             if(B.AGM < 0) setAGMandIters(B);
             int splitDim = B.getSplitDim();
             if(B.AGM == 0)return {};
             
             long long l = B.getLowerBound()[splitDim], r = B.getUpperBound()[splitDim], mid;
-            int splitPos = l;
+            int splitPos = l, AGMleft, x;
+            double ans;
             vector<int> cardinalities(B.iters.size(), 0);
             for(size_t i = 0; i < cardinalities.size(); i++) {
                 cardinalities[i] = B.iters[i].second - B.iters[i].first;
             }
+            vector<bool> flag(cardinalities.size(), false);
             vector<int> rels = q.getRels(splitDim);
             vector<int> splitVarinRels(rels.size());
-            vector<vector<int> > BleftUpperBounds(rels.size());
+            vector<vector<int> > BleftUpperBounds(rels.size()), BmidUpperBounds(rels.size());
             for(size_t i = 0; i < rels.size(); i++) {
+                flag[rels[i]] = true;
                 BleftUpperBounds[i] = vector<int>(R[rels[i]].size());
+                BmidUpperBounds[i] = vector<int>(R[rels[i]].size());
                 for(size_t j = 0; j < R[rels[i]].size(); j++) {
                     BleftUpperBounds[i][j] = B.getUpperBound()[R[rels[i]][j]];
+                    BmidUpperBounds[i][j] = B.getUpperBound()[R[rels[i]][j]];
                     if(R[rels[i]][j] == splitDim) splitVarinRels[i] = j;
                 }
             }
@@ -239,22 +256,46 @@ class Index {
                     //     if(R[rels[i]][j] == splitDim) BleftUpb[j] = mid - 1;
                     //     else BleftUpb[j] = B.getUpperBound()[R[rels[i]][j]];
                     // }
+                    x = rels[i];
                     BleftUpperBounds[i][splitVarinRels[i]] = mid - 1;
-                    cardinalities[rels[i]] = tables[rels[i]].rt.getUpperBoundIter(BleftUpperBounds[i], B.iters[rels[i]].first, B.iters[rels[i]].second) - B.iters[rels[i]].first;
+                    cardinalities[x] = tables[x].rt.getUpperBoundIter(BleftUpperBounds[i], B.iters[x].first, B.iters[x].second) - B.iters[x].first;
                 }
-                double ans = q.AGM(cardinalities);
-                int AGMleft = ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans);
+                ans = q.AGM(cardinalities);
+                AGMleft = ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans);
                 if(AGMleft <= (B.AGM >> 1))splitPos = mid, l = mid + 1;
                 else r = mid - 1;
             }
             
             vector<Bucket> result = {};
-            Bucket Bleft = B.replace(B.getLowerBound()[splitDim], splitPos - 1);
-            setAGMandIters(Bleft, B.iters);
+            
+            Bucket Bleft = B, Bmid = B, Bright = B;
+            Bleft.upperBound[splitDim] = splitPos - 1;
+            Bmid.lowerBound[splitDim] = splitPos;
+            Bmid.upperBound[splitDim] = splitPos;
+            Bright.lowerBound[splitDim] = splitPos + 1;
+            Bleft.updateSplitDim();
+            Bmid.updateSplitDim();
+            Bright.updateSplitDim();
+            vector<Point<int> >::iterator leftIter, rightIter;
+            for(size_t i = 0; i < rels.size(); i++) {
+                x = rels[i];
+                BleftUpperBounds[i][splitVarinRels[i]] = splitPos - 1;
+                BmidUpperBounds[i][splitVarinRels[i]] = splitPos;
+
+                leftIter = tables[x].rt.getUpperBoundIter(BleftUpperBounds[i], B.iters[x].first, B.iters[x].second);
+                rightIter = tables[x].rt.getUpperBoundIter(BmidUpperBounds[i], B.iters[x].first, B.iters[x].second);
+
+                Bleft.iters[x] = make_pair(B.iters[x].first, leftIter);
+                Bmid.iters[x] = make_pair(leftIter, rightIter);
+                Bright.iters[x] = make_pair(rightIter, B.iters[x].second);
+            }
+
+            setAGM(Bleft);
+            setAGM(Bmid);
+            setAGM(Bright);
+
             if(splitPos - 1 >= B.getLowerBound()[splitDim] && Bleft.AGM > 0)result.push_back(Bleft);
             
-            Bucket Bmid = B.replace(splitPos, splitPos);
-            setAGMandIters(Bmid, B.iters);
             if(splitDim == B.getDim() - 1) {
                 if(Bmid.AGM > 0)result.push_back(Bmid);
             }
@@ -263,9 +304,10 @@ class Index {
                 result.insert(result.end(), temp.begin(), temp.end());
             }
 
-            Bucket Bright = B.replace(splitPos + 1, B.getUpperBound()[splitDim]);
-            setAGMandIters(Bright, B.iters);
             if(splitPos + 1 <= B.getUpperBound()[splitDim] && Bright.AGM > 0)result.push_back(Bright);
+            // auto endSplit = chrono::high_resolution_clock::now();
+            // chrono::duration<double> elapsedSplit = endSplit - startSplit;
+            // totalSplitTime += elapsedSplit.count();
             return result;
         }
 

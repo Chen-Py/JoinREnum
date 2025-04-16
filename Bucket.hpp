@@ -26,9 +26,11 @@ class Bucket {
          * @note If all dimensions of the lower and upper bounds are equal, splitDim
          *       will be set to the size of the lowerBound vector.
          */
-        Bucket(vector<int> lowerBound, vector<int> upperBound){
-            this->lowerBound = lowerBound;
-            this->upperBound = upperBound;
+        Bucket(vector<int> lowerBound, vector<int> upperBound, int splitDim = 0) : lowerBound(lowerBound), upperBound(upperBound), splitDim(splitDim) {
+            while(splitDim < lowerBound.size() && lowerBound[splitDim] == upperBound[splitDim])splitDim++;
+        }
+
+        void updateSplitDim() {
             while(splitDim < lowerBound.size() && lowerBound[splitDim] == upperBound[splitDim])splitDim++;
         }
 
@@ -85,7 +87,7 @@ class Bucket {
         }
 
         Bucket replace(int lower, int upper) const {
-            Bucket newBucket(lowerBound, upperBound);
+            Bucket newBucket(lowerBound, upperBound, splitDim);
             newBucket.replaceSelf(lower, upper);
             return newBucket;
         }
@@ -100,7 +102,7 @@ class Bucket {
 
         void printIters(vector<vector<Point<int> >::iterator> begins) const {
             for(size_t i = 0; i < iters.size(); i++){
-                cout << "R" << i << "(" << iters[i].second - begins[i] << ", " << iters[i].first - begins[i] << "), ";
+                cout << "R" << i << "(" << iters[i].first - begins[i] << ", " << iters[i].second - begins[i] << "), ";
             }
             cout << endl;
         }
