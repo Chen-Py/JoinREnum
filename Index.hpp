@@ -72,6 +72,9 @@ class Index {
                 }
             }
             FB = {lowerBound, upperBound};
+            q.print();
+            cout << "TreeUpperBound: " << jt.treeUpp(FB) << endl;
+            jt.print();
             setAGMandIters(FB);
         }
 

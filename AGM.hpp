@@ -186,6 +186,14 @@ class Query{
                 // if(res != ans1) cout << "ERROR: " << ans1 << " " << ans2 << " " << ans3 << " " << ans4 << endl;
                 return min(min(ans0, ans1), min(ans2, ans3));
             }
+            if(true){
+                double ans1 = 1;
+                for(int car : cars) ans1 *= pow(car, 0.25);
+                // double ans2 = cars[0] * sqrt(cars[7]) * sqrt(cars[8]) * sqrt(cars[9]);
+                // double ans3 = cars[0] * sqrt(cars[4]) * sqrt(cars[7]) * cars[9];
+                // return min(ans3, ans1);
+                return ans1;
+            }
             // if(false){
             //     double ans = 1;
             //     for(int i = 0; i < relations.size(); i++){
