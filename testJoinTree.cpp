@@ -30,13 +30,12 @@ int main() {
     JoinTree tree = idx.jt;
     tree.print();
     tree.printChildren();
-    for(int i = 0; i < CO.size(); i++) {
-        cout << "Count Oracle of R" << i << "---------------" << endl;
-        CO[i]->print();
-    }
-    Bucket B = Bucket({2, 2, 1}, {2, 4, 6});
+    // for(int i = 0; i < CO.size(); i++) {
+    //     cout << "Count Oracle of R" << i << "---------------" << endl;
+    //     CO[i]->print();
+    // }
+    Bucket B = idx.getFullBucket();
     B.print();
-    cout << tree.treeUpp(B) << endl;
     vector<vector<int> > relation = q.getRelations();
     vector<pair<vector<int>, vector<int> > > bound = {};
     for(int i = 0; i < relation.size(); i++) {
@@ -60,6 +59,7 @@ int main() {
         }
         cout << endl;
     }
-    cout << tree.treeUpp(B.getSplitDim(), bound) << endl;
+    cout << tree.treeUpp(B.splitDim, bound) << endl;
+    cout << tree.treeUpp(B.splitDim, B.iters) << endl;
     return 0;
 }

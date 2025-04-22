@@ -15,6 +15,7 @@ class Index {
         Bucket FB;
         vector<vector<int> > R;
         vector<Table<Parcel> > tables;
+        // vector<vector<Point<int> >::iterator> beginIters;
         int cntCacheHit = 0;
         int cntTotalCall = 0;
         int cntAGMCall = 0;
@@ -72,9 +73,21 @@ class Index {
                 }
             }
             FB = {lowerBound, upperBound};
+            // for(size_t i = 0; i < tables.size(); i++) {
+            //     beginIters.push_back(tables[i].rt.points.begin());
+            // }
             q.print();
             cout << "TreeUpperBound: " << jt.treeUpp(FB) << endl;
             jt.print();
+            cout << "CountRels: " << endl;
+            for(size_t i = 0; i < jt.countRels.size(); i++) {
+                cout << "SplitDim=" << i  << ": ";
+                for(size_t j = 0; j < jt.countRels[i].size(); j++) {
+                    cout << "R[" << jt.countRels[i][j] << "], ";
+                }
+                cout << endl;
+
+            }
             setAGMandIters(FB);
         }
 
@@ -95,12 +108,17 @@ class Index {
         }
 
         void setAGM(Bucket &B) {
+            // cout << "SET AGM of: ";
+            // B.print();
+            // B.printIters(beginIters);
             vector<int> cardinalities(B.iters.size());
             for(size_t i = 0; i < cardinalities.size(); i++) {
                 cardinalities[i] = B.iters[i].second - B.iters[i].first;
             }
             double ans = q.AGM(cardinalities);
             B.AGM = ceil(ans) - ans < 1e-5 ? ceil(ans) : int(ans);
+            // cout << "BEFORE TREEUPP" << endl;
+            // B.AGM = min(B.AGM, jt.treeUpp(B.splitDim, B.iters));
             return;
         }
 
@@ -127,6 +145,7 @@ class Index {
             }
             double ans = q.AGM(cardinalities);
             B.AGM = ceil(ans) - ans < 1e-5 ? ceil(ans) : int(ans);
+            // B.AGM = min(B.AGM, jt.treeUpp(B.splitDim, B.iters));
             return;
         }
 
@@ -224,6 +243,9 @@ class Index {
         }
 
         vector<Bucket> splitBucket(Bucket B){
+            
+            // cout << "SPLITTING: ";
+            // B.print();
             cntSplitCall++;
             // auto startSplit = chrono::high_resolution_clock::now();
             if(B.AGM < 0) setAGMandIters(B);
@@ -251,6 +273,7 @@ class Index {
                     if(R[rels[i]][j] == splitDim) splitVarinRels[i] = j;
                 }
             }
+            // vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > BleftIters = B.iters;
             while(l <= r){
                 mid = (l + r) >> 1;
                 for(size_t i = 0; i < rels.size(); i++) {
@@ -261,13 +284,16 @@ class Index {
                     // }
                     x = rels[i];
                     BleftUpperBounds[i][splitVarinRels[i]] = mid - 1;
+                    // BleftIters[x].first = tables[x].rt.getUpperBoundIter(BleftUpperBounds[i], B.iters[x].first, B.iters[x].second);
                     cardinalities[x] = tables[x].rt.getUpperBoundIter(BleftUpperBounds[i], B.iters[x].first, B.iters[x].second) - B.iters[x].first;
                 }
                 ans = q.AGM(cardinalities);
                 AGMleft = ceil(ans)-ans < 1e-5 ? ceil(ans) : int(ans);
+                // AGMleft = min(AGMleft, jt.treeUpp(splitDim, BleftIters));
                 if(AGMleft <= (B.AGM >> 1))splitPos = mid, l = mid + 1;
                 else r = mid - 1;
             }
+            // cout << "BINARY SEARCH DONE: " << splitPos << endl;
             
             vector<Bucket> result = {};
             
@@ -279,6 +305,7 @@ class Index {
             Bleft.updateSplitDim();
             Bmid.updateSplitDim();
             Bright.updateSplitDim();
+            // cout << "UPDATE SPLITDIM DONE" << endl;
             vector<Point<int> >::iterator leftIter, rightIter;
             for(size_t i = 0; i < rels.size(); i++) {
                 x = rels[i];
@@ -293,9 +320,16 @@ class Index {
                 Bright.iters[x] = make_pair(rightIter, B.iters[x].second);
             }
 
+            // cout << "SET ITERS DONE" << endl;
+            // Bleft.print();
+            // Bmid.print();
+            // Bright.print();
             setAGM(Bleft);
             setAGM(Bmid);
             setAGM(Bright);
+
+            
+            // cout << "SET AGM DONE" << endl;
 
             if(splitPos - 1 >= B.getLowerBound()[splitDim] && Bleft.AGM > 0)result.push_back(Bleft);
             
@@ -311,6 +345,8 @@ class Index {
             // auto endSplit = chrono::high_resolution_clock::now();
             // chrono::duration<double> elapsedSplit = endSplit - startSplit;
             // totalSplitTime += elapsedSplit.count();
+            // cout << "DONE: ";
+            // B.print();
             return result;
         }
 

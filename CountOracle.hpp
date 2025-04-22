@@ -176,6 +176,12 @@ public:
         else return (itr - 1)->cnt - (itl - 1)->cnt;
     }
 
+    int sumCnt(const vector<Point<int> >::iterator &itl, const vector<Point<int> >::iterator &itr) {
+        if(itr == points.begin())return 0;
+        else if(itl == points.begin())return (itr - 1)->cnt;
+        else return (itr - 1)->cnt - (itl - 1)->cnt;
+    }
+
     
     /**
      * @brief Counts the number of points within the range [pl, pr).

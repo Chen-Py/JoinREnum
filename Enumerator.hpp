@@ -14,8 +14,8 @@ public:
         unordered_map<string, string> filenames,
         unordered_map<string, int> numlines) :
         access_tree(relations, filenames, numlines),
+        // bp(min(access_tree.AGM, access_tree.idx.jt.treeUpp(access_tree.idx.FB))) {}   
         bp(access_tree.AGM) {}
-
     void random_enumerate() {
         
         int cntsuccess = 0, cnt = 0, step = 20;

@@ -7,6 +7,7 @@ private:
     vector<vector<int> > children; // children[i] = list of children of node i
     vector<int> parent; // parent[i] = parent of node i, -1 if root
     vector<vector<vector<int> > > joinPos; // joinPos[i][j] = the join positions of the edge between i and j
+    vector<bool> visVar;
 
     void preProcessing(int node) {
         if(node < 0 || node >= (int)children.size()) return;
@@ -19,6 +20,20 @@ private:
             }
             if(i > 0) CO[node]->points[i].cnt += CO[node]->points[i - 1].cnt;
         }
+        return;
+    }
+
+    void initCountRels(int node) {
+        if(node < 0 || node >= (int)children.size()) return;
+        vector<bool> tempVisVar(visVar);
+        for(int i : relation[node]) {
+            if(!visVar[i]) {
+                visVar[i] = true;
+                countRels[i].push_back(node);
+            }
+        }
+        for(int i = 0; i < children[node].size(); i++) initCountRels(children[node][i]);
+        visVar = tempVisVar;
         return;
     }
 
@@ -54,6 +69,7 @@ private:
 
 public:
     int root;
+    vector<vector<int> > countRels; // countRels[i] = the relations that are needed to count when the splitDim is i
 
     JoinTree(){}
 
@@ -64,6 +80,8 @@ public:
         children = vector<vector<int> >(q.getRelNames().size(), vector<int>());
         joinPos = vector<vector<vector<int > > >(q.getRelNames().size(), vector<vector<int> >());
         parent = vector<int>(q.getRelNames().size(), -1);
+        countRels = vector<vector<int> >(q.getVarNumber(), vector<int>());
+        visVar = vector<bool>(q.getVarNumber(), false);
         vector<bool> visited(q.getRelNames().size(), false);
         visited[0] = true;
         que.push(0);
@@ -99,6 +117,18 @@ public:
             }
         }
         preProcessing(root);
+        initCountRels(root);
+    }
+
+    int treeUpp(int splitDim, const vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > iters) {
+        // cout << "TREEUPP IN";
+        if(splitDim >= (int)countRels.size()) return 1;
+        int tupp = 1;
+        for(int node : countRels[splitDim]) {
+            tupp *= CO[node]->sumCnt(iters[node].first, iters[node].second);
+        }
+        // cout << "TREEUPP OUT" << endl;
+        return tupp;
     }
 
     int treeUpp(int splitDim, vector<pair<vector<int>, vector<int> > > &bound) {
