@@ -35,11 +35,11 @@ public:
                 // cout << ")" << endl;
                 
                 cntsuccess++;
-                if(cntsuccess < step || cntsuccess % step == 0){
-                end = std::chrono::high_resolution_clock::now();
-                elapsed = end - start;
-                cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
-                }
+                // if(cntsuccess < step || cntsuccess % step == 0){
+                // end = std::chrono::high_resolution_clock::now();
+                // elapsed = end - start;
+                // cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
+                // }
             }
             if(res.first) bp.ban(s,s);
             else bp.ban(res.second[0], res.second[1]);

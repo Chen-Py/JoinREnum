@@ -87,7 +87,7 @@ private:
      *             is created and initialized with child buckets and pointers.
      * @return The total empty size of the rightmost subtree, including the current node's empty size.
      */
-    int getEmptyRight(Bucket B, RRAccessTreeNode* &node) {
+    int getEmptyRight(Bucket &B, RRAccessTreeNode* &node) {
         if (B.AGM < 0) idx.setAGMandIters(B);
         if (B.getSplitDim() == B.getDim()) return 1 - B.AGM;
         if (!node) {
@@ -100,7 +100,7 @@ private:
     }
 
 
-    pair<bool, vector<int> > RRAccess(int k, Bucket B, RRAccessTreeNode* &node, int offset = 0) {
+    pair<bool, vector<int> > RRAccess(int k, Bucket &B, RRAccessTreeNode* &node, int offset = 0) {
         if(B.getSplitDim() == B.getDim()) return make_pair(true, B.getLowerBound());
         if(B.AGM < 0) idx.setAGMandIters(B);
         if (!node) {
@@ -213,7 +213,7 @@ public:
      *           - if the operation fails, the vector is an trivial interval.
      */
     pair<bool, vector<int> > RRAccess(int k) {
-        return RRAccess(k, idx.getFullBucket(), root, 0);
+        return RRAccess(k, idx.FB, root, 0);
     }
 
     void print(RRAccessTreeNode* node, int depth = 0) {
