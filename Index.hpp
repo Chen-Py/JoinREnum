@@ -15,6 +15,7 @@ class Index {
         Bucket FB;
         vector<vector<int> > R;
         vector<Table<Parcel> > tables;
+        vector<int> attVal;
         // vector<vector<Point<int> >::iterator> beginIters;
         int cntCacheHit = 0;
         int cntTotalCall = 0;
@@ -76,6 +77,14 @@ class Index {
             // for(size_t i = 0; i < tables.size(); i++) {
             //     beginIters.push_back(tables[i].rt.points.begin());
             // }
+            set<int> attValSet;
+            for(size_t i = 0; i < tables[0].rt.points.size(); i++) {
+                attValSet.insert(tables[0].rt.points[i][0]);
+            }
+            for(auto it = attValSet.begin(); it != attValSet.end(); it++) {
+                attVal.push_back(*it);
+            }
+            cout << "ATTVAL: " << attVal.size() << endl;
             q.print();
             cout << "TreeUpperBound: " << jt.treeUpp(FB) << endl;
             jt.print();
@@ -242,34 +251,34 @@ class Index {
             return result;
         }
 
-        vector<Bucket> splitBucket(Bucket B){
+        vector<Bucket> splitBucket(Bucket &B){
             
             // cout << "SPLITTING: ";
             // B.print();
             cntSplitCall++;
             // auto startSplit = chrono::high_resolution_clock::now();
             if(B.AGM < 0) setAGMandIters(B);
-            int splitDim = B.getSplitDim();
             if(B.AGM == 0)return {};
+            int splitDim = B.getSplitDim();
             
-            long long l = B.getLowerBound()[splitDim], r = B.getUpperBound()[splitDim], mid;
+            long long l = B.lowerBound[splitDim], r = B.upperBound[splitDim], mid;
             int splitPos = l, AGMleft, x;
             double ans;
             vector<int> cardinalities(B.iters.size(), 0);
             for(size_t i = 0; i < cardinalities.size(); i++) {
                 cardinalities[i] = B.iters[i].second - B.iters[i].first;
             }
-            vector<bool> flag(cardinalities.size(), false);
+            // vector<bool> flag(cardinalities.size(), false);
             vector<int> rels = q.getRels(splitDim);
             vector<int> splitVarinRels(rels.size());
             vector<vector<int> > BleftUpperBounds(rels.size()), BmidUpperBounds(rels.size());
             for(size_t i = 0; i < rels.size(); i++) {
-                flag[rels[i]] = true;
+                // flag[rels[i]] = true;
                 BleftUpperBounds[i] = vector<int>(R[rels[i]].size());
                 BmidUpperBounds[i] = vector<int>(R[rels[i]].size());
                 for(size_t j = 0; j < R[rels[i]].size(); j++) {
-                    BleftUpperBounds[i][j] = B.getUpperBound()[R[rels[i]][j]];
-                    BmidUpperBounds[i][j] = B.getUpperBound()[R[rels[i]][j]];
+                    BleftUpperBounds[i][j] = B.upperBound[R[rels[i]][j]];
+                    BmidUpperBounds[i][j] = B.upperBound[R[rels[i]][j]];
                     if(R[rels[i]][j] == splitDim) splitVarinRels[i] = j;
                 }
             }
@@ -331,15 +340,18 @@ class Index {
             
             // cout << "SET AGM DONE" << endl;
 
-            if(splitPos - 1 >= B.getLowerBound()[splitDim] && Bleft.AGM > 0)result.push_back(Bleft);
             
-            if(splitDim == B.getDim() - 1) {
-                if(Bmid.AGM > 0)result.push_back(Bmid);
+            if(Bmid.AGM > 0 && splitDim < B.getDim() - 1) {
+                // vector<Bucket> temp = splitBucket(Bmid);
+                // result.insert(result.end(), temp.begin(), temp.end());
+                result = splitBucket(Bmid);
             }
-            else if(Bmid.AGM > 0) {
-                vector<Bucket> temp = splitBucket(Bmid);
-                result.insert(result.end(), temp.begin(), temp.end());
-            }
+            else if(Bmid.AGM > 0)result.push_back(Bmid);
+            // if(splitDim == B.getDim() - 1) {
+            //     if(Bmid.AGM > 0)result.push_back(Bmid);
+            // }
+
+            if(splitPos - 1 >= B.getLowerBound()[splitDim] && Bleft.AGM > 0)result.push_back(Bleft);
 
             if(splitPos + 1 <= B.getUpperBound()[splitDim] && Bright.AGM > 0)result.push_back(Bright);
             // auto endSplit = chrono::high_resolution_clock::now();
@@ -347,6 +359,14 @@ class Index {
             // totalSplitTime += elapsedSplit.count();
             // cout << "DONE: ";
             // B.print();
+            return result;
+        }
+
+        vector<Bucket> Split(Bucket &B) {
+            vector<Bucket> result = splitBucket(B);
+            while(result.size() == 1 && result[0].splitDim != result[0].getDim()){
+                result = splitBucket(result[0]);
+            }
             return result;
         }
 

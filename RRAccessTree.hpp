@@ -44,7 +44,7 @@ class RRAccessTreeNode {
 
 public:
     int emptySize;
-    Bucket B;
+    Bucket* B;
     vector<Bucket> children_buckets;
     vector<RRAccessTreeNode*> children_pointers;
 
@@ -55,17 +55,18 @@ public:
      * @param children_buckets A vector of buckets.
      * @param children_pointers A vector of pointers to the child nodes of this node.
      */
-    RRAccessTreeNode(Bucket B, vector<Bucket> children_buckets, vector<RRAccessTreeNode*> children_pointers) : B(B), children_buckets(children_buckets), children_pointers(children_pointers) {
+    RRAccessTreeNode(Bucket* B, vector<Bucket> && children_buckets) : B(B), children_buckets(children_buckets) {
         int sumChildrenAGM = 0;
         for(int i = 0; i < children_buckets.size(); i++) {
             sumChildrenAGM += children_buckets[i].AGM;
         }
-        emptySize = B.AGM - sumChildrenAGM;
+        children_pointers = vector<RRAccessTreeNode*>(children_buckets.size(), NULL);
+        emptySize = B->AGM - sumChildrenAGM;
     }
 
     void print() {
-        cout << "AGM: " << B.AGM << ", size: " << children_buckets.size() << ", ";
-        B.print();
+        cout << "AGM: " << B->AGM << ", size: " << children_buckets.size() << ", ";
+        B->print();
     }
 };
 
@@ -91,8 +92,8 @@ private:
         if (B.AGM < 0) idx.setAGMandIters(B);
         if (B.getSplitDim() == B.getDim()) return 1 - B.AGM;
         if (!node) {
-            vector<Bucket> children = idx.splitBucket(B);
-            node = new RRAccessTreeNode(B, children, vector<RRAccessTreeNode*>(children.size(), NULL));
+            // vector<Bucket> children = idx.Split(B);
+            node = new RRAccessTreeNode(&B, idx.Split(B));
         }
         int emptyright = node->children_buckets.size() > 0 ? getEmptyRight(node->children_buckets[node->children_buckets.size() - 1], node->children_pointers[node->children_pointers.size() - 1]) : 0;
 
@@ -100,15 +101,22 @@ private:
     }
 
 
-    pair<bool, vector<int> > RRAccess(int k, Bucket &B, RRAccessTreeNode* &node, int offset = 0) {
-        if(B.getSplitDim() == B.getDim()) return make_pair(true, B.getLowerBound());
+    bool RRAccess(int k, Bucket &B, RRAccessTreeNode* &node, int offset = 0) {
+        if(B.getSplitDim() == B.getDim()){
+            result = B.getLowerBound();
+            return true;
+        }
         if(B.AGM < 0) idx.setAGMandIters(B);
         if (!node) {
-            vector<Bucket> children = idx.splitBucket(B);
-            node = new RRAccessTreeNode(B, children, vector<RRAccessTreeNode*>(children.size(), NULL));
+            // vector<Bucket> children = idx.Split(B);
+            node = new RRAccessTreeNode(&B, idx.Split(B));
         }
-        if(offset + B.AGM - node->emptySize < k)
-            return make_pair(false, vector<int>({offset + B.AGM - getEmptyRight(B, node) + 1, offset + B.AGM}));
+        if(offset + B.AGM - node->emptySize < k){
+            trivialInterval.first = offset + B.AGM - getEmptyRight(B, node) + 1;
+            trivialInterval.second = offset + B.AGM;
+            return false;
+        }
+            // return make_pair(false, vector<int>({offset + B.AGM - getEmptyRight(B, node) + 1, offset + B.AGM}));
         int childAGM, temp = 0;
         for(int i = 0; i < node->children_buckets.size() - 1; i++) {
             childAGM = node->children_buckets[i].AGM;
@@ -118,10 +126,13 @@ private:
             else temp += childAGM;
         }
         int last = node->children_buckets.size() - 1;
-        pair<bool, vector<int> > res = RRAccess(k, node->children_buckets[last], node->children_pointers[last], offset + temp);
+        bool res = RRAccess(k, node->children_buckets[last], node->children_pointers[last], offset + temp);
         
-        if(!res.first && res.second[1] == offset + B.AGM - node->emptySize)return make_pair(false, vector<int>({res.second[0], offset + B.AGM}));
-        else return res;
+        if(!res && trivialInterval.second == offset + B.AGM - node->emptySize){
+            trivialInterval.second = offset + B.AGM;
+            // return make_pair(false, vector<int>({res.second[0], offset + B.AGM}));
+        }
+        return res;
     }
 
     
@@ -131,6 +142,8 @@ public:
     int AGM;
     RRAccessTreeNode* root = NULL;
     Index idx;
+    vector<int> result;
+    pair<int, int> trivialInterval;
 
     RRAccessTree() {}
 
@@ -212,7 +225,7 @@ public:
      *           - if the operation is successful, the vector is the retrieved join result.
      *           - if the operation fails, the vector is an trivial interval.
      */
-    pair<bool, vector<int> > RRAccess(int k) {
+    bool RRAccess(int k) {
         return RRAccess(k, idx.FB, root, 0);
     }
 

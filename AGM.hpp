@@ -175,7 +175,7 @@ class Query{
         
         }
 
-        double AGM(vector<int> cars = {}){
+        double AGM(vector<int> &cars){
             for (int i = 0; i < cars.size(); i++)if(cars[i] <= 0)return 0;
             if(true){
                 // return sqrt(cars[0]) * sqrt(cars[1]) * sqrt(cars[2]);

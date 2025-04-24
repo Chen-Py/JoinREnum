@@ -26,8 +26,8 @@ public:
         while(bp.remaining()){
             cnt++;
             int s = bp.pick();
-            pair<bool, vector<int> > res = access_tree.RRAccess(s);
-            if(res.first){
+            bool res = access_tree.RRAccess(s);
+            if(res){
                 // cout << "(";
                 // for(int i = 0; i < res.second.size(); i++) {
                 //     cout << res.second[i] << ",";
@@ -41,8 +41,8 @@ public:
                 // cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
                 // }
             }
-            if(res.first) bp.ban(s,s);
-            else bp.ban(res.second[0], res.second[1]);
+            if(res) bp.ban(s,s);
+            else bp.ban(access_tree.trivialInterval.first, access_tree.trivialInterval.second);
         }
         end = std::chrono::high_resolution_clock::now();
         elapsed = end - start;
