@@ -13,6 +13,7 @@ void printInfo(Index &idx) {
     cout << "Total Count Oracle Time: " << idx.totalCountOracleTime << endl;
     cout << "Total Split Time: " << idx.totalSplitTime << endl;
     cout << "Total Split Call: " << idx.cntSplitCall << endl;
+    cout << "Total Binary Search Loop: " << idx.cntBSCall << endl;
     cout << "Total Cache Hit Time: " << idx.totalCacheHitTime << endl;
     cout << "Total Bound Prepare Time: " << idx.totalBoundPrepareTime << endl;
     return;

@@ -21,6 +21,7 @@ class Index {
         int cntTotalCall = 0;
         int cntAGMCall = 0;
         int cntSplitCall = 0;
+        int cntBSCall = 0;
         double totalAGMTime = 0;
         double totalCountOracleTime = 0;
         double totalSplitTime = 0;
@@ -284,6 +285,7 @@ class Index {
             }
             // vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > BleftIters = B.iters;
             while(l <= r){
+                cntBSCall++;
                 mid = (l + r) >> 1;
                 for(size_t i = 0; i < rels.size(); i++) {
                     // vector<int> BleftUpb(R[rels[i]].size());
