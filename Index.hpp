@@ -15,6 +15,7 @@ class Index {
         Bucket FB;
         vector<vector<int> > R;
         vector<Table<Parcel> > tables;
+        vector<vector<vector<int> > > data;
         vector<int> attVal;
         // vector<vector<Point<int> >::iterator> beginIters;
         int cntCacheHit = 0;
@@ -84,6 +85,17 @@ class Index {
             }
             for(auto it = attValSet.begin(); it != attValSet.end(); it++) {
                 attVal.push_back(*it);
+            }
+            // store the points in column
+            data.resize(tables.size());
+            for(size_t i = 0; i < data.size(); i++) {
+                data[i].resize(q.getRelations()[i].size());
+                for(size_t j = 0; j < data[i].size(); j++) {
+                    data[i][j].resize(tables[i].rt.points.size());
+                    for(size_t k = 0; k < data[i][j].size(); k++) {
+                        data[i][j][k] = tables[i].rt.points[k][j];
+                    }
+                }
             }
             cout << "ATTVAL: " << attVal.size() << endl;
             q.print();

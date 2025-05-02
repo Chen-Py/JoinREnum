@@ -8,7 +8,13 @@ int cntLoop1 = 0, cntLoop2 = 0;
 int cntF1 = 0, cntF2 = 0;
 
 
-double F(const vector<int> &pos) {
+double F(const vector<int> && pos) {
+    long long ans = 1;
+    for(int a : pos) ans *= a;
+    return sqrt(ans);
+}
+
+double F(const vector<int> & pos) {
     long long ans = 1;
     for(int a : pos) ans *= a;
     return sqrt(ans);
@@ -43,19 +49,25 @@ vector<int> getpos(const vector<pair<vector<int>::iterator, vector<int>::iterato
     return pos;
 }
 
+void getpos(const vector<pair<vector<int>::iterator, vector<int>::iterator> > &iters, int target, vector<int> &pos) {
+    for (int i = 0; i < iters.size(); i++) {
+        pos[i] = lower_bound(iters[i].first, iters[i].second, target) - iters[i].first;
+    }
+}
+
 int BinarySearch(const vector<pair<vector<int>::iterator, vector<int>::iterator> > &iters, const int target) {
     int MIN = *iters[0].first, MAX = *(iters[0].second - 1);
     for(int i = 1; i < iters.size(); i++) {
         MIN = min(MIN, *iters[i].first);
         MAX = max(MAX, *(iters[i].second - 1));
     }
-    int l = MIN, r = MAX, mid, res;
+    long long l = MIN, r = MAX, mid, res;
     vector<int> pos(iters.size());
     while(l <= r) {
         cntLoop2++;
         mid = (l + r) >> 1;
-        pos = getpos(iters, mid);
-        int ans = F(pos);
+        // pos = 
+        int ans = F(getpos(iters, mid));
         cntF2++;
         if(ans < target) {
             res = mid;
@@ -73,6 +85,7 @@ int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::
     vector<pair<vector<int>::iterator, vector<int>::iterator> > bounds = iters;
     vector<vector<int>::iterator> itermid(iters.size());
     vector<int> pos(iters.size());
+    vector<int> tmppos(iters.size());
     for(int i = 0; i < iters.size(); i++) {
         itermid[i] = iters[i].first + (iters[i].second - iters[i].first) / 2;
         pos[i] = itermid[i] - iters[i].first;
@@ -90,7 +103,8 @@ int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::
         if(res <= target) {
             bounds[mini].first = itermid[mini];
             if(bounds[mini].second - bounds[mini].first <= 1) {
-                if(F(getpos(iters, *bounds[mini].first + 1)) > target) return *bounds[mini].first;
+                getpos(iters, *bounds[mini].first + 1, tmppos);
+                if(F(tmppos) > target) return *bounds[mini].first;
                 else pos[mini] = bounds[mini].second - iters[mini].first;
                 cnt++;
             }
@@ -102,7 +116,8 @@ int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::
         else {
             bounds[maxi].second = itermid[maxi];
             if(bounds[maxi].second - bounds[maxi].first <= 1) {
-                if(F(getpos(iters, *bounds[maxi].first + 1)) > target) return *bounds[maxi].first;
+                getpos(iters, *bounds[maxi].first + 1, tmppos);
+                if(F(tmppos) > target) return *bounds[maxi].first;
                 else pos[maxi] = bounds[maxi].second - iters[maxi].first;
                 cnt++;
             }
@@ -135,8 +150,10 @@ int main() {
     int TestTimes = 100000;
     vector<int> vec(TestTimes);
     for(int i = 0; i < TestTimes; i++) {
-        vec[i] = ((rand() << 15) + rand()) % (1000010);
+        vec[i] = rand() % (1000010);
+        // cout << vec[i] << " ";
     }
+    // return 0;
 
 
     clock_t start, end;
@@ -150,6 +167,7 @@ int main() {
         // if(now > vec[i] || (nxt <= vec[i] && res < MAX_INT)) cout << "Error: " << vec[i] << " " << res << " " << now << " " << nxt << endl;
         // else correct++;
     }
+    cout << "Correct: " << correct << endl;
     end = clock();
     double duration = (double)(end - start) / CLOCKS_PER_SEC;
     cout << "Time: " << duration << "s" << endl;
@@ -161,7 +179,6 @@ int main() {
     end = clock();
     duration = (double)(end - start) / CLOCKS_PER_SEC;
     cout << "Time: " << duration << "s" << endl;
-    cout << "Correct: " << correct << endl;
     cout << "#Calling F: " << cntF1 << " , " << cntF2 << endl;
     cout << "#Loop: " << cntLoop1 << " , " << cntLoop2 << endl;
     return 0;
