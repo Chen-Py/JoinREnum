@@ -3,6 +3,7 @@
 #include "Parcel.h"
 #include "Bucket.hpp"
 #include "JoinTree.hpp"
+#include "MHBS.hpp"
 using namespace std;
 
 class Index {
@@ -16,6 +17,8 @@ class Index {
         vector<vector<int> > R;
         vector<Table<Parcel> > tables;
         vector<vector<vector<int> > > data;
+        vector<vector<int> > varPos; // varPos[i][j] = the position of the j-th variable in the i-th relation, -1 if not found
+        vector<vector<bool> > mask;
         vector<int> attVal;
         // vector<vector<Point<int> >::iterator> beginIters;
         int cntCacheHit = 0;
@@ -88,14 +91,34 @@ class Index {
             }
             // store the points in column
             data.resize(tables.size());
+            varPos.resize(tables.size(), vector<int>(q.getVarNumber(), -1));
+            mask.resize(q.getVarNumber(), vector<bool>(tables.size(), false));
             for(size_t i = 0; i < data.size(); i++) {
                 data[i].resize(q.getRelations()[i].size());
                 for(size_t j = 0; j < data[i].size(); j++) {
+                    varPos[i][q.getRelations()[i][j]] = j;
+                    mask[q.getRelations()[i][j]][i] = true;
                     data[i][j].resize(tables[i].rt.points.size());
                     for(size_t k = 0; k < data[i][j].size(); k++) {
                         data[i][j][k] = tables[i].rt.points[k][j];
                     }
                 }
+            }
+            cout << "VarPos: " << endl;
+            for(size_t i = 0; i < varPos.size(); i++) {
+                cout << "Relation " << i << ": ";
+                for(size_t j = 0; j < varPos[i].size(); j++) {
+                    cout << varPos[i][j] << ", ";
+                }
+                cout << endl;
+            }
+            cout << "Mask: " << endl;
+            for(size_t i = 0; i < mask.size(); i++) {
+                cout << "Variable " << i << ": ";
+                for(size_t j = 0; j < mask[i].size(); j++) {
+                    cout << mask[i][j] << ", ";
+                }
+                cout << endl;
             }
             cout << "ATTVAL: " << attVal.size() << endl;
             q.print();
@@ -142,6 +165,28 @@ class Index {
             // cout << "BEFORE TREEUPP" << endl;
             // B.AGM = min(B.AGM, jt.treeUpp(B.splitDim, B.iters));
             return;
+        }
+
+        vector<pair<vector<int>::iterator, vector<int>::iterator> > transformIters(const vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > &iters, const int splitDim) {
+            vector<pair<vector<int>::iterator, vector<int>::iterator> > result(tables.size());
+            // cout << "Transform iters: " << endl;
+            for(size_t i = 0; i < iters.size(); i++) {
+                // cout << iters[i].first - tables[i].rt.points.begin() << ", " << iters[i].second - tables[i].rt.points.begin() << endl;
+                result[i].first = int(iters[i].first - tables[i].rt.points.begin()) + data[i][max(0, varPos[i][splitDim])].begin();
+                result[i].second = int(iters[i].second - tables[i].rt.points.begin()) + data[i][max(0, varPos[i][splitDim])].begin();
+            }
+            // for(int i = 0; i < result.size(); i++) {
+            //     cout << "Relation " << i << ": ";
+            //     for(vector<int>::iterator it = result[i].first; it != result[i].second; it++)
+            //         cout << *it << ", ";
+            //     cout << endl;
+            // }
+            // cout << "Mask: ";
+            // for(int i = 0; i < mask.size(); i++) {
+            //     cout << mask[i][splitDim] << ", ";
+            // }
+            // cout << endl;
+            return result;
         }
 
         
@@ -295,6 +340,10 @@ class Index {
                     if(R[rels[i]][j] == splitDim) splitVarinRels[i] = j;
                 }
             }
+            vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters = transformIters(B.iters, splitDim);
+            int pos = MultiHeadBinarySearch(vecIters, mask[splitDim], B.AGM >> 1, q);
+            // cout << "POS: " << pos << endl;
+
             // vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > BleftIters = B.iters;
             while(l <= r){
                 cntBSCall++;
@@ -317,7 +366,7 @@ class Index {
                 else r = mid - 1;
             }
             // cout << "BINARY SEARCH DONE: " << splitPos << endl;
-            
+            if(pos != splitPos) cout << "ERROR: POS != SPLITPOS" << endl;
             vector<Bucket> result = {};
             
             Bucket Bleft = B, Bmid = B, Bright = B;

@@ -95,10 +95,19 @@ int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::
         if(!flag[i]) {
             pos[i] = iters[i].second - iters[i].first;
             cnt++;
-            continue;
         }
-        itermid[i] = iters[i].first + (iters[i].second - iters[i].first) / 2;
-        pos[i] = itermid[i] - iters[i].first;
+        else if(iters[i].second - iters[i].first <= 1) {
+            getpos(iters, flag, *iters[i].first + 1, tmppos);
+            res = q.AGM(tmppos);
+            upp = ceil(res) - res < 1e-5 ? ceil(res) : int(res);
+            if(upp > target) return *iters[i].first;
+            else pos[i] = iters[i].second - iters[i].first;
+            cnt++;
+        }
+        else{
+            itermid[i] = iters[i].first + (iters[i].second - iters[i].first) / 2;
+            pos[i] = itermid[i] - iters[i].first;
+        }
     }
     while(cnt < iters.size()) {
         mini = -1, maxi = -1;
