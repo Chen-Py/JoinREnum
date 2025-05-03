@@ -1,7 +1,6 @@
 #include <bits/stdc++.h>
 #include "Index.hpp"
 #include "ReadConfig.hpp"
-#include "MHBS.hpp"
 
 void printVector(const vector<int>& vec) {
     for (const auto& val : vec) {
