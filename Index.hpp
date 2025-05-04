@@ -453,13 +453,9 @@ class Index {
             }
 
             
-            auto startSplit = chrono::high_resolution_clock::now();
             vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters = transformIters(B.iters, splitDim);
             splitPos = MultiHeadBinarySearch(vecIters, mask[splitDim], B.AGM >> 1, q);
             
-            auto endSplit = chrono::high_resolution_clock::now();
-            chrono::duration<double> elapsedSplit = endSplit - startSplit;
-            totalSplitTime += elapsedSplit.count();
             // cout << "POS: " << pos << endl;
 
             // vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > BleftIters = B.iters;
@@ -476,18 +472,30 @@ class Index {
             Bright.updateSplitDim();
             // cout << "UPDATE SPLITDIM DONE" << endl;
             vector<Point<int> >::iterator leftIter, rightIter;
+            vector<int>::iterator leftItertmp, rightItertmp;
+            
+            // auto startSplit = chrono::high_resolution_clock::now();
             for(size_t i = 0; i < rels.size(); i++) {
                 x = rels[i];
                 BleftUpperBounds[i][splitVarinRels[i]] = splitPos - 1;
                 BmidUpperBounds[i][splitVarinRels[i]] = splitPos;
 
-                leftIter = tables[x].rt.getUpperBoundIter(BleftUpperBounds[i], B.iters[x].first, B.iters[x].second);
-                rightIter = tables[x].rt.getUpperBoundIter(BmidUpperBounds[i], B.iters[x].first, B.iters[x].second);
+                leftItertmp = lower_bound(vecIters[x].first, vecIters[x].second, splitPos);
+                rightItertmp = upper_bound(vecIters[x].first, vecIters[x].second, splitPos);
+
+                leftIter = B.iters[x].first + (leftItertmp - vecIters[x].first);
+                rightIter = B.iters[x].first + (rightItertmp - vecIters[x].first);
+
+                // leftIter = tables[x].rt.getUpperBoundIter(BleftUpperBounds[i], B.iters[x].first, B.iters[x].second);
+                // rightIter = tables[x].rt.getUpperBoundIter(BmidUpperBounds[i], B.iters[x].first, B.iters[x].second);
 
                 Bleft.iters[x] = make_pair(B.iters[x].first, leftIter);
                 Bmid.iters[x] = make_pair(leftIter, rightIter);
                 Bright.iters[x] = make_pair(rightIter, B.iters[x].second);
             }
+            // auto endSplit = chrono::high_resolution_clock::now();
+            // chrono::duration<double> elapsedSplit = endSplit - startSplit;
+            // totalSplitTime += elapsedSplit.count();
 
             // cout << "SET ITERS DONE" << endl;
             // Bleft.print();
