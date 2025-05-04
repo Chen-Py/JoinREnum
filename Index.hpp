@@ -19,7 +19,7 @@ class Index {
         vector<vector<vector<int> > > data;
         vector<vector<int> > varPos; // varPos[i][j] = the position of the j-th variable in the i-th relation, -1 if not found
         vector<vector<bool> > mask;
-        vector<int> attVal;
+        // vector<int> attVal;
         // vector<vector<Point<int> >::iterator> beginIters;
         int cntCacheHit = 0;
         int cntTotalCall = 0;
@@ -82,13 +82,13 @@ class Index {
             // for(size_t i = 0; i < tables.size(); i++) {
             //     beginIters.push_back(tables[i].rt.points.begin());
             // }
-            set<int> attValSet;
-            for(size_t i = 0; i < tables[0].rt.points.size(); i++) {
-                attValSet.insert(tables[0].rt.points[i][0]);
-            }
-            for(auto it = attValSet.begin(); it != attValSet.end(); it++) {
-                attVal.push_back(*it);
-            }
+            // set<int> attValSet;
+            // for(size_t i = 0; i < tables[0].rt.points.size(); i++) {
+            //     attValSet.insert(tables[0].rt.points[i][0]);
+            // }
+            // for(auto it = attValSet.begin(); it != attValSet.end(); it++) {
+            //     attVal.push_back(*it);
+            // }
             // store the points in column
             data.resize(tables.size());
             varPos.resize(tables.size(), vector<int>(q.getVarNumber(), -1));
@@ -120,7 +120,7 @@ class Index {
                 }
                 cout << endl;
             }
-            cout << "ATTVAL: " << attVal.size() << endl;
+            // cout << "ATTVAL: " << attVal.size() << endl;
             q.print();
             cout << "TreeUpperBound: " << jt.treeUpp(FB) << endl;
             jt.print();
@@ -404,7 +404,7 @@ class Index {
             if(Bmid.AGM > 0 && splitDim < B.getDim() - 1) {
                 // vector<Bucket> temp = splitBucket(Bmid);
                 // result.insert(result.end(), temp.begin(), temp.end());
-                result = splitBucket(Bmid);
+                result = splitBucket_BS(Bmid);
             }
             else if(Bmid.AGM > 0)result.push_back(Bmid);
             // if(splitDim == B.getDim() - 1) {
@@ -424,42 +424,18 @@ class Index {
 
         vector<Bucket> splitBucket(Bucket &B){
             
-            // cout << "SPLITTING: ";
-            // B.print();
             cntSplitCall++;
             if(B.AGM < 0) setAGMandIters(B);
-            if(B.AGM == 0)return {};
+            if(B.AGM == 0) return {};
             int splitDim = B.getSplitDim();
             
             int splitPos, x;
             double ans;
-            vector<int> cardinalities(B.iters.size(), 0);
-            for(size_t i = 0; i < cardinalities.size(); i++) {
-                cardinalities[i] = B.iters[i].second - B.iters[i].first;
-            }
-            // vector<bool> flag(cardinalities.size(), false);
             vector<int> rels = q.getRels(splitDim);
-            vector<int> splitVarinRels(rels.size());
-            vector<vector<int> > BleftUpperBounds(rels.size()), BmidUpperBounds(rels.size());
-            for(size_t i = 0; i < rels.size(); i++) {
-                // flag[rels[i]] = true;
-                BleftUpperBounds[i] = vector<int>(R[rels[i]].size());
-                BmidUpperBounds[i] = vector<int>(R[rels[i]].size());
-                for(size_t j = 0; j < R[rels[i]].size(); j++) {
-                    BleftUpperBounds[i][j] = B.upperBound[R[rels[i]][j]];
-                    BmidUpperBounds[i][j] = B.upperBound[R[rels[i]][j]];
-                    if(R[rels[i]][j] == splitDim) splitVarinRels[i] = j;
-                }
-            }
 
-            
+            auto startSplit = chrono::high_resolution_clock::now();
             vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters = transformIters(B.iters, splitDim);
             splitPos = MultiHeadBinarySearch(vecIters, mask[splitDim], B.AGM >> 1, q);
-            
-            // cout << "POS: " << pos << endl;
-
-            // vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > BleftIters = B.iters;
-            // cout << "BINARY SEARCH DONE: " << splitPos << endl;
             vector<Bucket> result = {};
             
             Bucket Bleft = B, Bmid = B, Bright = B;
@@ -470,60 +446,35 @@ class Index {
             Bleft.updateSplitDim();
             Bmid.updateSplitDim();
             Bright.updateSplitDim();
-            // cout << "UPDATE SPLITDIM DONE" << endl;
             vector<Point<int> >::iterator leftIter, rightIter;
-            vector<int>::iterator leftItertmp, rightItertmp;
             
-            // auto startSplit = chrono::high_resolution_clock::now();
             for(size_t i = 0; i < rels.size(); i++) {
+                
                 x = rels[i];
-                BleftUpperBounds[i][splitVarinRels[i]] = splitPos - 1;
-                BmidUpperBounds[i][splitVarinRels[i]] = splitPos;
+                leftIter = B.iters[x].first + (lower_bound(vecIters[x].first, vecIters[x].second, splitPos) - vecIters[x].first);
+                rightIter = B.iters[x].first + (upper_bound(vecIters[x].first, vecIters[x].second, splitPos) - vecIters[x].first);
 
-                leftItertmp = lower_bound(vecIters[x].first, vecIters[x].second, splitPos);
-                rightItertmp = upper_bound(vecIters[x].first, vecIters[x].second, splitPos);
-
-                leftIter = B.iters[x].first + (leftItertmp - vecIters[x].first);
-                rightIter = B.iters[x].first + (rightItertmp - vecIters[x].first);
-
-                // leftIter = tables[x].rt.getUpperBoundIter(BleftUpperBounds[i], B.iters[x].first, B.iters[x].second);
-                // rightIter = tables[x].rt.getUpperBoundIter(BmidUpperBounds[i], B.iters[x].first, B.iters[x].second);
-
-                Bleft.iters[x] = make_pair(B.iters[x].first, leftIter);
+                Bleft.iters[x].second = leftIter;
                 Bmid.iters[x] = make_pair(leftIter, rightIter);
-                Bright.iters[x] = make_pair(rightIter, B.iters[x].second);
+                Bright.iters[x].first = rightIter;
             }
-            // auto endSplit = chrono::high_resolution_clock::now();
-            // chrono::duration<double> elapsedSplit = endSplit - startSplit;
-            // totalSplitTime += elapsedSplit.count();
 
-            // cout << "SET ITERS DONE" << endl;
-            // Bleft.print();
-            // Bmid.print();
-            // Bright.print();
             setAGM(Bleft);
             setAGM(Bmid);
             setAGM(Bright);
-
-            
-            // cout << "SET AGM DONE" << endl;
-
+            auto endSplit = chrono::high_resolution_clock::now();
+            chrono::duration<double> elapsedSplit = endSplit - startSplit;
+            totalSplitTime -= elapsedSplit.count();
             
             if(Bmid.AGM > 0 && splitDim < B.getDim() - 1) {
-                // vector<Bucket> temp = splitBucket(Bmid);
-                // result.insert(result.end(), temp.begin(), temp.end());
                 result = splitBucket(Bmid);
             }
-            else if(Bmid.AGM > 0)result.push_back(Bmid);
-            // if(splitDim == B.getDim() - 1) {
-            //     if(Bmid.AGM > 0)result.push_back(Bmid);
-            // }
+            else if(Bmid.AGM > 0) result.push_back(Bmid);
 
-            if(splitPos - 1 >= B.getLowerBound()[splitDim] && Bleft.AGM > 0)result.push_back(Bleft);
-
-            if(splitPos + 1 <= B.getUpperBound()[splitDim] && Bright.AGM > 0)result.push_back(Bright);
-            // cout << "DONE: ";
-            // B.print();
+            if(splitPos + 1 <= B.upperBound[splitDim] && Bright.AGM > 0) result.push_back(Bright);
+            
+            if(splitPos - 1 >= B.lowerBound[splitDim] && Bleft.AGM > 0) result.push_back(Bleft);
+            
             return result;
         }
 
