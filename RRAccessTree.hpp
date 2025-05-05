@@ -93,11 +93,11 @@ private:
         if (B.getSplitDim() == B.getDim()) return 1 - B.AGM;
         if (!node) {
             // vector<Bucket> children = idx.Split(B);
-            auto startSplit = chrono::high_resolution_clock::now();
+            // auto startSplit = chrono::high_resolution_clock::now();
             node = new RRAccessTreeNode(&B, idx.Split(B));
-            auto endSplit = chrono::high_resolution_clock::now();
-            chrono::duration<double> elapsedSplit = endSplit - startSplit;
-            idx.totalSplitTime += elapsedSplit.count();
+            // auto endSplit = chrono::high_resolution_clock::now();
+            // chrono::duration<double> elapsedSplit = endSplit - startSplit;
+            // idx.totalSplitTime += elapsedSplit.count();
         }
         int emptyright = node->children_buckets.size() > 0 ? getEmptyRight(node->children_buckets[node->children_buckets.size() - 1], node->children_pointers[node->children_pointers.size() - 1]) : 0;
 
@@ -113,11 +113,11 @@ private:
         if(B.AGM < 0) idx.setAGMandIters(B);
         if (!node) {
             // vector<Bucket> children = idx.Split(B);
-            auto startSplit = chrono::high_resolution_clock::now();
+            // auto startSplit = chrono::high_resolution_clock::now();
             node = new RRAccessTreeNode(&B, idx.Split(B));
-            auto endSplit = chrono::high_resolution_clock::now();
-            chrono::duration<double> elapsedSplit = endSplit - startSplit;
-            idx.totalSplitTime += elapsedSplit.count();
+            // auto endSplit = chrono::high_resolution_clock::now();
+            // chrono::duration<double> elapsedSplit = endSplit - startSplit;
+            // idx.totalSplitTime += elapsedSplit.count();
         }
         if(offset + B.AGM - node->emptySize < k){
             trivialInterval.first = offset + B.AGM - getEmptyRight(B, node) + 1;

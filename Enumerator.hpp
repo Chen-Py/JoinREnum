@@ -35,11 +35,11 @@ public:
                 // cout << ")" << endl;
                 
                 cntsuccess++;
-                // if(cntsuccess < step || cntsuccess % step == 0){
-                // end = std::chrono::high_resolution_clock::now();
-                // elapsed = end - start;
-                // cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
-                // }
+                if(cntsuccess == 77610){
+                end = std::chrono::high_resolution_clock::now();
+                elapsed = end - start;
+                cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
+                }
             }
             if(res) bp.ban(s,s);
             else bp.ban(access_tree.trivialInterval.first, access_tree.trivialInterval.second);
