@@ -55,12 +55,12 @@ public:
      * @param children_buckets A vector of buckets.
      * @param children_pointers A vector of pointers to the child nodes of this node.
      */
-    RRAccessTreeNode(Bucket* B, vector<Bucket> && children_buckets) : B(B), children_buckets(children_buckets) {
+    RRAccessTreeNode(Bucket* B, vector<Bucket> && children_buckets) : B(B), children_buckets(move(children_buckets)) {
         int sumChildrenAGM = 0;
-        for(int i = 0; i < children_buckets.size(); i++) {
-            sumChildrenAGM += children_buckets[i].AGM;
+        for(int i = 0; i < this->children_buckets.size(); i++) {
+            sumChildrenAGM += this->children_buckets[i].AGM;
         }
-        children_pointers = vector<RRAccessTreeNode*>(children_buckets.size(), NULL);
+        children_pointers = vector<RRAccessTreeNode*>(this->children_buckets.size(), NULL);
         emptySize = B->AGM - sumChildrenAGM;
     }
 
