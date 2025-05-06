@@ -42,7 +42,10 @@ public:
                 }
             }
             if(res) bp.ban(s,s);
-            else bp.ban(access_tree.trivialInterval.first, access_tree.trivialInterval.second);
+            for(int i = 0; i < access_tree.numti; i++) {
+                bp.ban(access_tree.trivialIntervals[i].first, access_tree.trivialIntervals[i].second);
+            }
+            // else bp.ban(access_tree.trivialInterval.first, access_tree.trivialInterval.second);
         }
         end = std::chrono::high_resolution_clock::now();
         elapsed = end - start;
