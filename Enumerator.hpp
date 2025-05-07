@@ -17,7 +17,7 @@ public:
         // bp(min(access_tree.AGM, access_tree.idx.jt.treeUpp(access_tree.idx.FB))) {}   
         bp(access_tree.AGM) {}
     void random_enumerate() {
-        
+        double totalRRAccessTime = 0;
         int cntsuccess = 0, cnt = 0, step = 20;
         auto start = std::chrono::high_resolution_clock::now();
         auto end = std::chrono::high_resolution_clock::now();
@@ -26,7 +26,11 @@ public:
         while(bp.remaining()){
             cnt++;
             int s = bp.pick();
+            // auto startRRAccess = std::chrono::high_resolution_clock::now();
             bool res = access_tree.RRAccess(s);
+            // auto endRRAccess = std::chrono::high_resolution_clock::now();
+            // std::chrono::duration<double> elapsedRRAccess = endRRAccess - startRRAccess;
+            // totalRRAccessTime += elapsedRRAccess.count();
             if(res){
                 // cout << "(";
                 // for(int i = 0; i < res.second.size(); i++) {
@@ -50,7 +54,7 @@ public:
         end = std::chrono::high_resolution_clock::now();
         elapsed = end - start;
         cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
-
+        cout << "Total RRAccess Time: " << totalRRAccessTime << endl;
     }
 
 };

@@ -424,6 +424,7 @@ class Index {
 
         vector<Bucket> splitBucket(Bucket &B){
             
+            // auto startSplit = chrono::high_resolution_clock::now();
             cntSplitCall++;
             if(B.AGM < 0) setAGMandIters(B);
             if(B.AGM == 0) return {};
@@ -433,7 +434,6 @@ class Index {
             double ans;
             vector<int> rels = q.getRels(splitDim);
 
-            // auto startSplit = chrono::high_resolution_clock::now();
             vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters = transformIters(B.iters, splitDim);
             splitPos = MultiHeadBinarySearch(vecIters, mask[splitDim], B.AGM >> 1, q);
             vector<Bucket> result = {};
@@ -469,11 +469,11 @@ class Index {
             if(Bmid.AGM > 0 && splitDim < B.getDim() - 1) {
                 result = splitBucket(Bmid);
             }
-            else if(Bmid.AGM > 0) result.push_back(Bmid);
+            else if(Bmid.AGM > 0) result.push_back(move(Bmid));
 
-            if(splitPos + 1 <= B.upperBound[splitDim] && Bright.AGM > 0) result.push_back(Bright);
+            if(splitPos + 1 <= B.upperBound[splitDim] && Bright.AGM > 0) result.push_back(move(Bright));
             
-            if(splitPos - 1 >= B.lowerBound[splitDim] && Bleft.AGM > 0) result.push_back(Bleft);
+            if(splitPos - 1 >= B.lowerBound[splitDim] && Bleft.AGM > 0) result.push_back(move(Bleft));
             
             return result;
         }

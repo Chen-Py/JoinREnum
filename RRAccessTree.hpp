@@ -111,8 +111,13 @@ private:
         }
         if(B.AGM < 0) idx.setAGMandIters(B);
         if (!node) {
+            // auto startSplit = chrono::high_resolution_clock::now();
             node = new RRAccessTreeNode(&B, idx.Split(B));
-            trivialIntervals[numti++] = make_pair(offset + B.AGM - getEmptyRight(B, node) + 1, offset + B.AGM);
+            // auto endSplit = chrono::high_resolution_clock::now();
+            // chrono::duration<double> elapsedSplit = endSplit - startSplit;
+            // idx.totalSplitTime += elapsedSplit.count();
+            trivialIntervals[numti].first = offset + B.AGM - getEmptyRight(B, node) + 1;
+            trivialIntervals[numti++].second = offset + B.AGM;
         }
         int childAGM, temp = 0;
         for(int i = 0; i < node->children_buckets.size(); i++) {

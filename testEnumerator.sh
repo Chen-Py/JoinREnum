@@ -1,1 +1,1 @@
-g++ testEnumerator.cpp -O2 -g -o test.exe -lglpk && ./test.exe
+g++ testEnumerator.cpp -O2 -o test.exe -lglpk && ./test.exe
