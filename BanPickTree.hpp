@@ -113,11 +113,11 @@ public:
 
     void ban(int low, int high) {
         if (root == -1) {
-            pool.push_back(node(low, high));
+            pool.emplace_back(low, high);
             root = pool.size() - 1;
             return;
         }
-        pool.push_back(node(low, high));
+        pool.emplace_back(low, high);
         insertSubTree(root, pool.size() - 1);
     }
 
