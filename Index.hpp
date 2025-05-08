@@ -19,6 +19,7 @@ class Index {
         vector<vector<vector<int> > > data;
         vector<vector<int> > varPos; // varPos[i][j] = the position of the j-th variable in the i-th relation, -1 if not found
         vector<vector<bool> > mask;
+        vector<int> cardinalities;
         // vector<int> attVal;
         // vector<vector<Point<int> >::iterator> beginIters;
         int cntCacheHit = 0;
@@ -91,6 +92,7 @@ class Index {
             // }
             // store the points in column
             data.resize(tables.size());
+            cardinalities.resize(tables.size());
             varPos.resize(tables.size(), vector<int>(q.getVarNumber(), -1));
             mask.resize(q.getVarNumber(), vector<bool>(tables.size(), false));
             for(size_t i = 0; i < data.size(); i++) {
@@ -156,7 +158,7 @@ class Index {
             // cout << "SET AGM of: ";
             // B.print();
             // B.printIters(beginIters);
-            vector<int> cardinalities(B.iters.size());
+            // vector<int> cardinalities(B.iters.size());
             for(size_t i = 0; i < cardinalities.size(); i++) {
                 cardinalities[i] = B.iters[i].second - B.iters[i].first;
             }
