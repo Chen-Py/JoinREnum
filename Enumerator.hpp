@@ -1,5 +1,6 @@
 #include "BanPickTree.hpp"
 #include "RRAccessTree.hpp"
+#include <ctime>
 using namespace std;
 
 class Enumerator {
@@ -19,9 +20,9 @@ public:
     void random_enumerate() {
         double totalRRAccessTime = 0;
         int cntsuccess = 0, cnt = 0, step = 20;
-        auto start = std::chrono::high_resolution_clock::now();
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - start;
+        clock_t start = clock();
+        clock_t end;
+        double elapsed = 0;
         double last_percentage = 0;
         while(bp.remaining()){
             cnt++;
@@ -40,9 +41,9 @@ public:
                 
                 cntsuccess++;
                 if(cntsuccess == 77610){
-                end = std::chrono::high_resolution_clock::now();
-                elapsed = end - start;
-                cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
+                end = clock();
+                elapsed = double(end - start) / CLOCKS_PER_SEC;
+                cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed << endl;
                 }
             }
             if(res) bp.ban(s,s);
@@ -51,9 +52,9 @@ public:
             }
             // else bp.ban(access_tree.trivialInterval.first, access_tree.trivialInterval.second);
         }
-        end = std::chrono::high_resolution_clock::now();
-        elapsed = end - start;
-        cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed.count() << endl;
+        end = clock();
+        elapsed = double(end - start) / CLOCKS_PER_SEC;
+        cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed << endl;
         cout << "Total RRAccess Time: " << totalRRAccessTime << endl;
     }
 

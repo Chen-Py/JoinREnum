@@ -167,28 +167,6 @@ class Index {
             return;
         }
 
-        vector<pair<vector<int>::iterator, vector<int>::iterator> > transformIters(const vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> > &iters, const int splitDim) {
-            vector<pair<vector<int>::iterator, vector<int>::iterator> > result(tables.size());
-            // cout << "Transform iters: " << endl;
-            for(size_t i = 0; i < iters.size(); i++) {
-                // cout << iters[i].first - tables[i].rt.points.begin() << ", " << iters[i].second - tables[i].rt.points.begin() << endl;
-                result[i].first = int(iters[i].first - tables[i].rt.points.begin()) + data[i][max(0, varPos[i][splitDim])].begin();
-                result[i].second = int(iters[i].second - tables[i].rt.points.begin()) + data[i][max(0, varPos[i][splitDim])].begin();
-            }
-            // for(int i = 0; i < result.size(); i++) {
-            //     cout << "Relation " << i << ": ";
-            //     for(vector<int>::iterator it = result[i].first; it != result[i].second; it++)
-            //         cout << *it << ", ";
-            //     cout << endl;
-            // }
-            // cout << "Mask: ";
-            // for(int i = 0; i < mask.size(); i++) {
-            //     cout << mask[i][splitDim] << ", ";
-            // }
-            // cout << endl;
-            return result;
-        }
-
         
         void setAGMandIters(Bucket &B, const vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> >& iters = {}) {
             int relnum = R.size();
@@ -434,7 +412,12 @@ class Index {
             double ans;
             vector<int> rels = q.getRels(splitDim);
 
-            vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters = transformIters(B.iters, splitDim);
+            vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters(B.iters.size());
+            for(size_t i = 0; i < B.iters.size(); i++) {
+                vecIters[i].first = int(B.iters[i].first - tables[i].rt.points.begin()) + data[i][max(0, varPos[i][splitDim])].begin();
+                vecIters[i].second = int(B.iters[i].second - tables[i].rt.points.begin()) + data[i][max(0, varPos[i][splitDim])].begin();
+            }
+
             splitPos = MultiHeadBinarySearch(vecIters, mask[splitDim], B.AGM >> 1, q);
             vector<Bucket> result = {};
             
