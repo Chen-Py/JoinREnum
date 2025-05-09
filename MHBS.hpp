@@ -77,14 +77,14 @@ int MultiHeadBinarySearch(const vector<pair<vector<Point<int> >::iterator, vecto
     return res;
 }
 
-void getpos(const vector<pair<vector<int>::iterator, vector<int>::iterator> > &iters, const vector<bool> &flag, const int target, vector<int> &pos) {
+void getpos(const vector<pair<vector<int>::iterator, vector<int>::iterator> > &iters, const vector<pair<vector<int>::iterator, vector<int>::iterator> > &bounds, const vector<bool> &flag, const int target, vector<int> &pos) {
     for (int i = 0; i < iters.size(); i++) {
         if(!flag[i]) pos[i] = iters[i].second - iters[i].first;
-        else pos[i] = lower_bound(iters[i].first, iters[i].second, target) - iters[i].first;
+        else pos[i] = lower_bound(bounds[i].first, bounds[i].second, target) - iters[i].first;
     }
 }
 
-int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::iterator> > &iters, const vector<bool> &flag, const int target, Query &q) {
+int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::iterator> > &iters, const vector<bool> &flag, vector<int> &rels, const int target, Query &q) {
     vector<pair<vector<int>::iterator, vector<int>::iterator> > bounds = iters;
     vector<vector<int>::iterator> itermid(iters.size());
     vector<int> pos(iters.size());
@@ -97,7 +97,7 @@ int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::
             cnt++;
         }
         else if(iters[i].second - iters[i].first <= 1) {
-            getpos(iters, flag, *iters[i].first + 1, tmppos);
+            getpos(iters, bounds, flag, *iters[i].first + 1, tmppos);
             res = q.AGM(tmppos);
             upp = ceil(res) - res < 1e-5 ? ceil(res) : int(res);
             if(upp > target) return *iters[i].first;
@@ -111,8 +111,8 @@ int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::
     }
     while(cnt < iters.size()) {
         mini = -1, maxi = -1;
-        for(int i = 0; i < iters.size(); i++){
-            if(!flag[i] || bounds[i].second - bounds[i].first <= 1) continue;
+        for(size_t i : rels){
+            if(bounds[i].second - bounds[i].first <= 1) continue;
             if(mini == -1 || *itermid[i] < *itermid[mini]) mini = i;
             if(maxi == -1 || *itermid[i] > *itermid[maxi]) maxi = i;
         }
@@ -121,7 +121,8 @@ int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::
         if(upp <= target) {
             bounds[mini].first = itermid[mini];
             if(bounds[mini].second - bounds[mini].first <= 1) {
-                getpos(iters, flag, *bounds[mini].first + 1, tmppos);
+                if(*bounds[mini].first == *bounds[mini].second) return *bounds[mini].first;
+                getpos(iters, bounds, flag, *bounds[mini].first + 1, tmppos);
                 res = q.AGM(tmppos);
                 upp = ceil(res) - res < 1e-5 ? ceil(res) : int(res);
                 if(upp > target) return *bounds[mini].first;
@@ -136,7 +137,8 @@ int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::
         else {
             bounds[maxi].second = itermid[maxi];
             if(bounds[maxi].second - bounds[maxi].first <= 1) {
-                getpos(iters, flag, *bounds[maxi].first + 1, tmppos);
+                if(*bounds[maxi].first == *bounds[maxi].second) return *bounds[maxi].first;
+                getpos(iters, bounds, flag, *bounds[maxi].first + 1, tmppos);
                 res = q.AGM(tmppos);
                 upp = ceil(res) - res < 1e-5 ? ceil(res) : int(res);
                 if(upp > target) return *bounds[maxi].first;

@@ -19,6 +19,7 @@ class Index {
         vector<vector<vector<int> > > data;
         vector<vector<int> > varPos; // varPos[i][j] = the position of the j-th variable in the i-th relation, -1 if not found
         vector<vector<bool> > mask;
+        vector<vector<int> > rels;
         vector<int> cardinalities;
         // vector<int> attVal;
         // vector<vector<Point<int> >::iterator> beginIters;
@@ -95,11 +96,13 @@ class Index {
             cardinalities.resize(tables.size());
             varPos.resize(tables.size(), vector<int>(q.getVarNumber(), -1));
             mask.resize(q.getVarNumber(), vector<bool>(tables.size(), false));
+            rels.resize(q.getVarNumber(), {});
             for(size_t i = 0; i < data.size(); i++) {
                 data[i].resize(q.getRelations()[i].size());
                 for(size_t j = 0; j < data[i].size(); j++) {
                     varPos[i][q.getRelations()[i][j]] = j;
                     mask[q.getRelations()[i][j]][i] = true;
+                    rels[q.getRelations()[i][j]].push_back(i);
                     data[i][j].resize(tables[i].rt.points.size());
                     for(size_t k = 0; k < data[i][j].size(); k++) {
                         data[i][j][k] = tables[i].rt.points[k][j];
@@ -412,7 +415,7 @@ class Index {
             
             int splitPos, x;
             double ans;
-            vector<int> rels = q.getRels(splitDim);
+            // vector<int> rels = q.getRels(splitDim);
 
             vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters(B.iters.size());
             for(size_t i = 0; i < B.iters.size(); i++) {
@@ -420,7 +423,7 @@ class Index {
                 vecIters[i].second = int(B.iters[i].second - tables[i].rt.points.begin()) + data[i][max(0, varPos[i][splitDim])].begin();
             }
 
-            splitPos = MultiHeadBinarySearch(vecIters, mask[splitDim], B.AGM >> 1, q);
+            splitPos = MultiHeadBinarySearch(vecIters, mask[splitDim], rels[splitDim], B.AGM >> 1, q);
             vector<Bucket> result = {};
             
             Bucket Bleft = B, Bmid = B, Bright = B;
@@ -433,9 +436,9 @@ class Index {
             Bright.updateSplitDim();
             vector<Point<int> >::iterator leftIter, rightIter;
             
-            for(size_t i = 0; i < rels.size(); i++) {
+            for(size_t i = 0; i < rels[splitDim].size(); i++) {
                 
-                x = rels[i];
+                x = rels[splitDim][i];
                 leftIter = B.iters[x].first + (lower_bound(vecIters[x].first, vecIters[x].second, splitPos) - vecIters[x].first);
                 rightIter = B.iters[x].first + (upper_bound(vecIters[x].first, vecIters[x].second, splitPos) - vecIters[x].first);
 
