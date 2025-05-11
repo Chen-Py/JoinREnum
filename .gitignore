@@ -4,3 +4,4 @@ db/*.tbl
 db/*copy.txt
 res/*.txt
 *.exe
+perf/*

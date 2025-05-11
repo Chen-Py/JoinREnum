@@ -104,6 +104,26 @@ private:
         return node->emptySize + emptyright;
     }
 
+    void decreaseTrivialLowBound(Bucket &B, RRAccessTreeNode* &node, int &lowbound) {
+        if (B.AGM < 0) idx.setAGMandIters(B);
+        if (B.getSplitDim() == B.getDim()){
+            lowbound -= 1 - B.AGM;
+            return;
+        }
+        if (!node) {
+            // vector<Bucket> children = idx.Split(B);
+            // auto startSplit = chrono::high_resolution_clock::now();
+            node = new RRAccessTreeNode(&B, idx.Split(B));
+            // auto endSplit = chrono::high_resolution_clock::now();
+            // chrono::duration<double> elapsedSplit = endSplit - startSplit;
+            // idx.totalSplitTime += elapsedSplit.count();
+        }
+        lowbound -= node->emptySize;
+        if (node->children_buckets.size() > 0) decreaseTrivialLowBound(node->children_buckets[node->children_buckets.size() - 1], node->children_pointers[node->children_pointers.size() - 1], lowbound);
+
+        return;
+    }
+
     bool RRAccess_opt(int k, Bucket &B, RRAccessTreeNode* &node, int offset = 0) {
         if(B.getSplitDim() == B.getDim()){
             result = B.getLowerBound();
@@ -116,8 +136,10 @@ private:
             // auto endSplit = chrono::high_resolution_clock::now();
             // chrono::duration<double> elapsedSplit = endSplit - startSplit;
             // idx.totalSplitTime += elapsedSplit.count();
-            trivialIntervals[numti].first = offset + B.AGM - getEmptyRight(B, node) + 1;
-            trivialIntervals[numti++].second = offset + B.AGM;
+            trivialIntervals[numti].first = offset + B.AGM + 1;
+            decreaseTrivialLowBound(B, node, trivialIntervals[numti].first); 
+            trivialIntervals[numti].second = offset + B.AGM;
+            if(trivialIntervals[numti].first <= trivialIntervals[numti].second) numti++;
         }
         int childAGM, temp = 0;
         for(int i = 0; i < node->children_buckets.size(); i++) {

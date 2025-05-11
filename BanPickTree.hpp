@@ -81,7 +81,7 @@ private:
 
     int G() {
         int u = root;
-        int y = uniform_int_distribution<int>(1, H - (u != -1 ? pool[u].take : 0))(gen);
+        int y = uniform_int_distribution<int>(1, root != -1 ? H - pool[root].take : H)(gen);
         int b = 0, temp = 0;
         while (u != -1) {
             temp = pool[u].left != -1 ? pool[pool[u].left].take : 0;
@@ -125,7 +125,7 @@ public:
     }
 
     int remaining() {
-        return H - (root != -1 ? pool[root].take : 0);
+        return root != -1 ? H - pool[root].take : H;
     }
 
     bool available(int x) {
