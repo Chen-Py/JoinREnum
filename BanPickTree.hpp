@@ -81,8 +81,7 @@ private:
 
     int G() {
         int u = root;
-        uniform_int_distribution<int> udist(1, H - (u != -1 ? pool[u].take : 0));
-        int y = udist(gen);
+        int y = uniform_int_distribution<int>(1, H - (u != -1 ? pool[u].take : 0))(gen);
         int b = 0, temp = 0;
         while (u != -1) {
             temp = pool[u].left != -1 ? pool[pool[u].left].take : 0;
