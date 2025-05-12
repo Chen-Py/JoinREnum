@@ -26,7 +26,7 @@ public:
         double last_percentage = 0;
         while(bp.remaining()){
             cnt++;
-            int s = bp.pick();
+            long long s = bp.pick();
             // auto startRRAccess = std::chrono::high_resolution_clock::now();
             bool res = access_tree.RRAccess(s);
             // auto endRRAccess = std::chrono::high_resolution_clock::now();
@@ -40,12 +40,18 @@ public:
                 // cout << ")" << endl;
                 
                 cntsuccess++;
-                if(cntsuccess == 77610){
+                // if(cntsuccess == 77610){
+                if(cntsuccess % 10000 == 0){
                 end = clock();
                 elapsed = double(end - start) / CLOCKS_PER_SEC;
                 cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed << endl;
                 }
             }
+            // if(cnt % 100 == 0){
+            //     end = clock();
+            //     elapsed = double(end - start) / CLOCKS_PER_SEC;
+            //     cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed << endl;
+            //     }
             if(res) bp.ban(s,s);
             for(int i = 0; i < access_tree.numti; i++) {
                 bp.ban(access_tree.trivialIntervals[i].first, access_tree.trivialIntervals[i].second);

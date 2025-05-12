@@ -7,7 +7,8 @@ class Bucket {
         // vector<pair<Bucket*, int> > children = {};
 
     public:
-        int splitDim = 0, AGM = -1;
+        int splitDim = 0;
+        long long AGM = -1;
         vector<int> lowerBound;
         vector<int> upperBound;
         vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator > > iters;

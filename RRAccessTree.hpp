@@ -43,7 +43,7 @@
 class RRAccessTreeNode {
 
 public:
-    int emptySize;
+    long long emptySize;
     Bucket* B;
     vector<Bucket> children_buckets;
     vector<RRAccessTreeNode*> children_pointers;
@@ -56,12 +56,11 @@ public:
      * @param children_pointers A vector of pointers to the child nodes of this node.
      */
     RRAccessTreeNode(Bucket* B, vector<Bucket> && children_buckets) : B(B), children_buckets(move(children_buckets)) {
-        int sumChildrenAGM = 0;
+        emptySize = B->AGM;
         for(int i = 0; i < this->children_buckets.size(); i++) {
-            sumChildrenAGM += this->children_buckets[i].AGM;
+            emptySize -= this->children_buckets[i].AGM;
         }
         children_pointers = vector<RRAccessTreeNode*>(this->children_buckets.size(), NULL);
-        emptySize = B->AGM - sumChildrenAGM;
     }
 
     void print() {
@@ -88,7 +87,7 @@ private:
      *             is created and initialized with child buckets and pointers.
      * @return The total empty size of the rightmost subtree, including the current node's empty size.
      */
-    int getEmptyRight(Bucket &B, RRAccessTreeNode* &node) {
+    long long getEmptyRight(Bucket &B, RRAccessTreeNode* &node) {
         if (B.AGM < 0) idx.setAGMandIters(B);
         if (B.getSplitDim() == B.getDim()) return 1 - B.AGM;
         if (!node) {
@@ -99,12 +98,12 @@ private:
             // chrono::duration<double> elapsedSplit = endSplit - startSplit;
             // idx.totalSplitTime += elapsedSplit.count();
         }
-        int emptyright = node->children_buckets.size() > 0 ? getEmptyRight(node->children_buckets[node->children_buckets.size() - 1], node->children_pointers[node->children_pointers.size() - 1]) : 0;
+        long long emptyright = node->children_buckets.size() > 0 ? getEmptyRight(node->children_buckets[node->children_buckets.size() - 1], node->children_pointers[node->children_pointers.size() - 1]) : 0;
 
         return node->emptySize + emptyright;
     }
 
-    void decreaseTrivialLowBound(Bucket &B, RRAccessTreeNode* &node, int &lowbound) {
+    void decreaseTrivialLowBound(Bucket &B, RRAccessTreeNode* &node, long long &lowbound) {
         if (B.AGM < 0) idx.setAGMandIters(B);
         if (B.getSplitDim() == B.getDim()){
             lowbound -= 1 - B.AGM;
@@ -124,7 +123,7 @@ private:
         return;
     }
 
-    bool RRAccess_opt(int k, Bucket &B, RRAccessTreeNode* &node, int offset = 0) {
+    bool RRAccess_opt(long long k, Bucket &B, RRAccessTreeNode* &node, long long offset = 0) {
         if(B.getSplitDim() == B.getDim()){
             result = B.getLowerBound();
             return true;
@@ -141,7 +140,7 @@ private:
             trivialIntervals[numti].second = offset + B.AGM;
             if(trivialIntervals[numti].first <= trivialIntervals[numti].second) numti++;
         }
-        int childAGM, temp = 0;
+        long long childAGM, temp = 0;
         for(int i = 0; i < node->children_buckets.size(); i++) {
             childAGM = node->children_buckets[i].AGM;
             if(offset + temp + childAGM >= k){
@@ -153,7 +152,7 @@ private:
     }
 
 
-    bool RRAccess(int k, Bucket &B, RRAccessTreeNode* &node, int offset = 0) {
+    bool RRAccess(long long k, Bucket &B, RRAccessTreeNode* &node, long long offset = 0) {
         if(B.getSplitDim() == B.getDim()){
             result = B.getLowerBound();
             return true;
@@ -173,7 +172,7 @@ private:
             return false;
         }
             // return make_pair(false, vector<int>({offset + B.AGM - getEmptyRight(B, node) + 1, offset + B.AGM}));
-        int childAGM, temp = 0;
+        long long childAGM, temp = 0;
         for(int i = 0; i < node->children_buckets.size() - 1; i++) {
             childAGM = node->children_buckets[i].AGM;
             if(offset + temp + childAGM >= k){
@@ -195,12 +194,12 @@ private:
     
 
 public:
-    int AGM;
+    long long AGM;
     RRAccessTreeNode* root = NULL;
     Index idx;
     vector<int> result;
-    pair<int, int> trivialInterval;
-    vector<pair<int, int> > trivialIntervals = vector<pair<int, int> >(50);
+    pair<long long, long long> trivialInterval;
+    vector<pair<long long, long long> > trivialIntervals = vector<pair<long long, long long> >(50);
     int numti = 0;
 
     RRAccessTree() {}
@@ -283,7 +282,7 @@ public:
      *           - if the operation is successful, the vector is the retrieved join result.
      *           - if the operation fails, the vector is an trivial interval.
      */
-    bool RRAccess(int k) {
+    bool RRAccess(long long k) {
         numti = 0;
         return RRAccess_opt(k, idx.FB, root, 0);
     }

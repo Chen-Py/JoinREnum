@@ -1,3 +1,6 @@
 R1(A,B)
-R2(B,C)
-R3(A,C)
+R2(A,C)
+R3(B,D)
+R4(C,D)
+R5(A,D)
+R6(B,C)
