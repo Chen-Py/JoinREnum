@@ -16,6 +16,7 @@ class Index {
         vector<vector<int> > R;
         vector<Table<Parcel> > tables;
         vector<vector<vector<int> > > data;
+        vector<vector<int> > treeBound;
         vector<vector<int> > varPos; // varPos[i][j] = the position of the j-th variable in the i-th relation, -1 if not found
         vector<vector<bool> > mask;
         vector<vector<int> > rels;
@@ -92,12 +93,14 @@ class Index {
             // }
             // store the points in column
             data.resize(tables.size());
+            treeBound.resize(tables.size());
             cardinalities.resize(tables.size());
             varPos.resize(tables.size(), vector<int>(q.getVarNumber(), -1));
             mask.resize(q.getVarNumber(), vector<bool>(tables.size(), false));
             rels.resize(q.getVarNumber(), {});
             for(size_t i = 0; i < data.size(); i++) {
                 data[i].resize(q.getRelations()[i].size());
+                treeBound[i].resize(tables[i].rt.points.size() + 1);
                 for(size_t j = 0; j < data[i].size(); j++) {
                     varPos[i][q.getRelations()[i][j]] = j;
                     mask[q.getRelations()[i][j]][i] = true;
@@ -106,6 +109,10 @@ class Index {
                     for(size_t k = 0; k < data[i][j].size(); k++) {
                         data[i][j][k] = tables[i].rt.points[k][j];
                     }
+                }
+                treeBound[i][0] = 0;
+                for(size_t j = 1; j < treeBound[i].size(); j++) {
+                    treeBound[i][j] = tables[i].rt.points[j - 1].cnt;
                 }
             }
             cout << "VarPos: " << endl;
