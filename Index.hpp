@@ -147,6 +147,12 @@ class Index {
             setAGMandIters(FB);
         }
 
+        long long treeUpp(const vector<pair<int, int> > &bound, const vector<int> &countRels) {
+            long long res = 1;
+            for(size_t i : countRels) res *= treeBound[i][bound[i].second] - treeBound[i][bound[i].first];
+            return res;
+        }
+
         vector<CountOracle<int>* > getCountOracles() {
             vector<CountOracle<int>* > CO;
             for(size_t i = 0; i < tables.size(); i++) {
