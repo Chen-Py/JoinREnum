@@ -26,7 +26,9 @@ private:
     void initCountRels(int node) {
         if(node < 0 || node >= (int)children.size()) return;
         vector<bool> tempVisVar(visVar);
-        for(int i : relation[node]) {
+        int maxi = -1;
+        for(int i : relation[node]) if(i > maxi) maxi = i;
+        for(int i = 0; i <= maxi; i++) {
             if(!visVar[i]) {
                 visVar[i] = true;
                 countRels[i].push_back(node);
