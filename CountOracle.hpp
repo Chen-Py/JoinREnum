@@ -199,12 +199,12 @@ public:
         return upper_bound(points.begin(), points.end(), pr) - lower_bound(points.begin(), points.end(), pl);
     }
 
-    typename vector<Point<T> >::iterator getUpperBoundIter(vector<T> & vec) {
-        return upper_bound(points.begin(), points.end(), Point<T>(vec));
+    int getUpperBoundIter(vector<T> & vec) {
+        return upper_bound(points.begin(), points.end(), Point<T>(vec)) = points.begin();
     }
 
-    typename vector<Point<T> >::iterator getUpperBoundIter(vector<T> & vec, typename vector<Point<T> >::iterator itl, typename vector<Point<T> >::iterator itr) {
-        return upper_bound(itl, itr, Point<T>(vec));
+    int getUpperBoundIter(vector<T> & vec, int itl, int itr) {
+        return upper_bound(points.begin() + itl, points.begin() + itr, Point<T>(vec)) - points.begin();
     }
 
     /**
@@ -223,12 +223,12 @@ public:
      *         - The first iterator points to the first element not less than `pl`.
      *         - The second iterator points to the first element greater than `pr`.
      */
-    pair<typename vector<Point<T> >::iterator, typename vector<Point<T> >::iterator> getRange(
+    pair<int, int> getRange(
         Point<T> pl,
         Point<T> pr,
         typename vector<Point<T> >::iterator itl,
         typename vector<Point<T> >::iterator itr) {
-        return make_pair(lower_bound(itl, itr, pl), upper_bound(itl, itr, pr));
+        return make_pair(lower_bound(itl, itr, pl) - points.begin(), upper_bound(itl, itr, pr) - points.begin());
     }
 
     /**
@@ -248,10 +248,10 @@ public:
      *         - The second iterator points to the first element in the range 
      *           that is greater than `pr`.
      */
-    pair<typename vector<Point<T> >::iterator, typename vector<Point<T> >::iterator> getRange(
+    pair<int, int> getRange(
         Point<T> pl,
         Point<T> pr) {
-        return make_pair(lower_bound(points.begin(), points.end(), pl), upper_bound(points.begin(), points.end(), pr));
+        return make_pair(lower_bound(points.begin(), points.end(), pl) - points.begin(), upper_bound(points.begin(), points.end(), pr) - points.begin());
     }
 
     /**

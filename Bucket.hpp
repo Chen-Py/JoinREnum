@@ -11,7 +11,7 @@ class Bucket {
         long long AGM = -1;
         vector<int> lowerBound;
         vector<int> upperBound;
-        vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator > > iters;
+        vector<pair<int, int> > iters;
         Bucket(){}
 
         /**
@@ -103,7 +103,7 @@ class Bucket {
 
         void printIters(vector<vector<Point<int> >::iterator> begins) const {
             for(size_t i = 0; i < iters.size(); i++){
-                cout << "R" << i << "(" << iters[i].first - begins[i] << ", " << iters[i].second - begins[i] << "), ";
+                cout << "R" << i << "(" << iters[i].first << ", " << iters[i].second << "), ";
             }
             cout << endl;
         }

@@ -187,7 +187,7 @@ class Index {
         
         void setAGMandIters(Bucket &B, const vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> >& iters = {}) {
             int relnum = R.size();
-            B.iters = vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> >(relnum);
+            B.iters = vector<pair<int, int> >(relnum);
             vector<int> cardinalities(relnum, 0);
             vector<int> lower_bound = {};
             vector<int> upper_bound = {};
@@ -371,7 +371,7 @@ class Index {
             Bmid.updateSplitDim();
             Bright.updateSplitDim();
             // cout << "UPDATE SPLITDIM DONE" << endl;
-            vector<Point<int> >::iterator leftIter, rightIter;
+            int leftIter, rightIter;
             for(size_t i = 0; i < rels.size(); i++) {
                 x = rels[i];
                 BleftUpperBounds[i][splitVarinRels[i]] = splitPos - 1;
@@ -432,8 +432,8 @@ class Index {
 
             vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters(B.iters.size());
             for(size_t i = 0; i < B.iters.size(); i++) {
-                vecIters[i].first = int(B.iters[i].first - tables[i].rt.points.begin()) + data[i][max(0, varPos[i][splitDim])].begin();
-                vecIters[i].second = int(B.iters[i].second - tables[i].rt.points.begin()) + data[i][max(0, varPos[i][splitDim])].begin();
+                vecIters[i].first = B.iters[i].first + data[i][max(0, varPos[i][splitDim])].begin();
+                vecIters[i].second = B.iters[i].second + data[i][max(0, varPos[i][splitDim])].begin();
             }
 
             splitPos = MultiHeadBinarySearch(vecIters, mask[splitDim], rels[splitDim], B.AGM >> 1, q);
@@ -447,7 +447,7 @@ class Index {
             Bleft.updateSplitDim();
             Bmid.updateSplitDim();
             Bright.updateSplitDim();
-            vector<Point<int> >::iterator leftIter, rightIter;
+            int leftIter, rightIter;
             
             for(size_t i = 0; i < rels[splitDim].size(); i++) {
                 
