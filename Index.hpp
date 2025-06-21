@@ -3,7 +3,7 @@
 #include "Parcel.h"
 #include "Bucket.hpp"
 #include "JoinTree.hpp"
-#include "MHBS.hpp"
+// #include "MHBS.hpp"
 using namespace std;
 
 class Index {
@@ -21,6 +21,7 @@ class Index {
         vector<vector<bool> > mask;
         vector<vector<int> > rels;
         vector<int> cardinalities;
+        vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters;
         // vector<int> attVal;
         // vector<vector<Point<int> >::iterator> beginIters;
         int cntCacheHit = 0;
@@ -52,6 +53,181 @@ class Index {
         //     q = Query(relationNames, relationVars);
         //     preProcessing(relations, filenames, numLines);
         // }
+        void getpos(const vector<pair<vector<int>::iterator, vector<int>::iterator> > &iters, const vector<pair<vector<int>::iterator, vector<int>::iterator> > &bounds, int splitDim, const int t, vector<int> &pos) {
+            for (int i = 0; i < iters.size(); i++) {
+                if(!mask[splitDim][i]) pos[i] = iters[i].second - iters[i].first;
+                else pos[i] = lower_bound(bounds[i].first, bounds[i].second, t) - iters[i].first;
+            }
+        }
+
+        int MultiHeadBinarySearch(const vector<pair<vector<int>::iterator, vector<int>::iterator> > &iters, int splitDim, const long long target) {
+            vector<pair<vector<int>::iterator, vector<int>::iterator> > bounds = iters;
+            vector<vector<int>::iterator> itermid(iters.size());
+            vector<int> pos(iters.size());
+            vector<int> tmppos(iters.size());
+            vector<pair<int, int> > indexbounds(iters.size());
+            int mini, maxi, cnt = 0;
+            long long upp;
+            double res;
+            for(int i = 0; i < iters.size(); i++) {
+                if(!mask[splitDim][i]) {
+                    pos[i] = iters[i].second - iters[i].first;
+                    cnt++;
+                }
+                else if(iters[i].second - iters[i].first <= 1) {
+                    getpos(iters, bounds, splitDim, *iters[i].first + 1, tmppos);
+                    res = q.AGM(tmppos);
+                    upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
+                    if(upp > target) return *iters[i].first;
+                    else pos[i] = iters[i].second - iters[i].first;
+                    cnt++;
+                }
+                else{
+                    itermid[i] = iters[i].first + (iters[i].second - iters[i].first) / 2;
+                    pos[i] = itermid[i] - iters[i].first;
+                }
+            }
+            while(cnt < iters.size()) {
+                mini = -1, maxi = -1;
+                for(size_t i : rels[splitDim]){
+                    if(bounds[i].second - bounds[i].first <= 1) continue;
+                    if(mini == -1 || *itermid[i] < *itermid[mini]) mini = i;
+                    if(maxi == -1 || *itermid[i] > *itermid[maxi]) maxi = i;
+                }
+                res = q.AGM(pos);
+                upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
+                if(upp <= target) {
+                    bounds[mini].first = itermid[mini];
+                    if(bounds[mini].second - bounds[mini].first <= 1) {
+                        if(*bounds[mini].first == *bounds[mini].second) return *bounds[mini].first;
+                        getpos(iters, bounds, splitDim, *bounds[mini].first + 1, tmppos);
+                        res = q.AGM(tmppos);
+                        upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
+                        if(upp > target) return *bounds[mini].first;
+                        else pos[mini] = bounds[mini].second - iters[mini].first;
+                        cnt++;
+                    }
+                    else {
+                        itermid[mini] = bounds[mini].first + (bounds[mini].second - bounds[mini].first) / 2;
+                        pos[mini] = itermid[mini] - iters[mini].first;
+                    }
+                }
+                else {
+                    bounds[maxi].second = itermid[maxi];
+                    if(bounds[maxi].second - bounds[maxi].first <= 1) {
+                        if(*bounds[maxi].first == *bounds[maxi].second) return *bounds[maxi].first;
+                        getpos(iters, bounds, splitDim, *bounds[maxi].first + 1, tmppos);
+                        res = q.AGM(tmppos);
+                        upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
+                        if(upp > target) return *bounds[maxi].first;
+                        else pos[maxi] = bounds[maxi].second - iters[maxi].first;
+                        cnt++;
+                    }
+                    else {
+                        itermid[maxi] = bounds[maxi].first + (bounds[maxi].second - bounds[maxi].first) / 2;
+                        pos[maxi] = itermid[maxi] - iters[maxi].first;
+                    }
+                }
+            }
+            int ans = 2147483647;
+            for(int i = 0; i < iters.size(); i++) {
+                if(bounds[i].second != iters[i].second) ans = min(ans, *bounds[i].second);
+            }
+            return ans;
+        }
+
+        void getpos(const vector<pair<int, int> > &iters, const vector<pair<int, int> > &bounds, int splitDim, const int t, vector<int> &pos) {
+            for (int i = 0; i < iters.size(); i++) {
+                if(!mask[splitDim][i]) pos[i] = iters[i].second - iters[i].first;
+                else {
+                    // 用lower_bound查找t在data[i][varPos[i][splitDim]][bounds[i].first, bounds[i].second)中的位置
+                    auto &vec = data[i][varPos[i][splitDim]];
+                    pos[i] = std::lower_bound(vec.begin() + bounds[i].first, vec.begin() + bounds[i].second, t) - (vec.begin() + iters[i].first);
+                }
+            }
+        }
+
+        int MultiHeadBinarySearch(const vector<pair<int, int> > &iters, int splitDim, const long long target) {
+            vector<pair<int, int> > bounds = iters;
+            vector<int> itermid(iters.size());
+            vector<int> pos(iters.size());
+            vector<int> tmppos(iters.size());
+            int mini, maxi, cnt = 0;
+            long long upp;
+            double res;
+            for(int i = 0; i < iters.size(); i++) {
+                if(!mask[splitDim][i]) {
+                    pos[i] = iters[i].second - iters[i].first;
+                    cnt++;
+                }
+                else if(iters[i].second - iters[i].first <= 1) {
+                    getpos(iters, bounds, splitDim, data[i][varPos[i][splitDim]][iters[i].first] + 1, tmppos);
+                    res = q.AGM(tmppos);
+                    upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
+                    if(splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, tmppos, jt.countRels[splitDim]));
+            // if(B.splitDim < jt.countRels.size())B.AGM = min(B.AGM, treeUpp(B.iters, jt.countRels[B.splitDim]));
+                    if(upp > target) return data[i][varPos[i][splitDim]][iters[i].first];
+                    else pos[i] = iters[i].second - iters[i].first;
+                    cnt++;
+                }
+                else{
+                    itermid[i] = iters[i].first + (iters[i].second - iters[i].first) / 2;
+                    pos[i] = itermid[i] - iters[i].first;
+                }
+            }
+            while(cnt < iters.size()) {
+                mini = -1, maxi = -1;
+                for(size_t i : rels[splitDim]){
+                    if(bounds[i].second - bounds[i].first <= 1) continue;
+                    if(mini == -1 || data[i][varPos[i][splitDim]][itermid[i]] < data[mini][varPos[mini][splitDim]][itermid[mini]]) mini = i;
+                    if(maxi == -1 || data[i][varPos[i][splitDim]][itermid[i]] > data[maxi][varPos[maxi][splitDim]][itermid[maxi]]) maxi = i;
+                }
+                res = q.AGM(pos);
+                upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
+                if(splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, pos, jt.countRels[splitDim]));
+                if(upp <= target) {
+                    bounds[mini].first = itermid[mini];
+                    if(bounds[mini].second - bounds[mini].first <= 1) {
+                        if(data[mini][varPos[mini][splitDim]][bounds[mini].first] == data[mini][varPos[mini][splitDim]][bounds[mini].second])
+                            return data[mini][varPos[mini][splitDim]][bounds[mini].first];
+                        getpos(iters, bounds, splitDim, data[mini][varPos[mini][splitDim]][bounds[mini].first] + 1, tmppos);
+                        res = q.AGM(tmppos);
+                        upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
+                        if(splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, tmppos, jt.countRels[splitDim]));
+                        if(upp > target) return data[mini][varPos[mini][splitDim]][bounds[mini].first];
+                        else pos[mini] = bounds[mini].second - iters[mini].first;
+                        cnt++;
+                    }
+                    else {
+                        itermid[mini] = bounds[mini].first + (bounds[mini].second - bounds[mini].first) / 2;
+                        pos[mini] = itermid[mini] - iters[mini].first;
+                    }
+                }
+                else {
+                    bounds[maxi].second = itermid[maxi];
+                    if(bounds[maxi].second - bounds[maxi].first <= 1) {
+                        if(data[maxi][varPos[maxi][splitDim]][bounds[maxi].first] == data[maxi][varPos[maxi][splitDim]][bounds[maxi].second])
+                            return data[maxi][varPos[maxi][splitDim]][bounds[maxi].first];
+                        getpos(iters, bounds, splitDim, data[maxi][varPos[maxi][splitDim]][bounds[maxi].first] + 1, tmppos);
+                        res = q.AGM(tmppos);
+                        upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
+                        if(splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, tmppos, jt.countRels[splitDim]));
+                        if(upp > target) return data[maxi][varPos[maxi][splitDim]][bounds[maxi].first];
+                        else pos[maxi] = bounds[maxi].second - iters[maxi].first;
+                        cnt++;
+                    }
+                    else {
+                        itermid[maxi] = bounds[maxi].first + (bounds[maxi].second - bounds[maxi].first) / 2;
+                        pos[maxi] = itermid[maxi] - iters[maxi].first;
+                    }
+                }
+            }
+            int ans = 2147483647;
+            for(int i = 0; i < iters.size(); i++) {
+                if(bounds[i].second != iters[i].second) ans = min(ans, data[i][varPos[i][splitDim]][bounds[i].second]);
+            }
+            return ans;
+        }
 
         void preProcessing(const unordered_map<string, vector<string> >& relations, const unordered_map<string, string>& filenames, const unordered_map<string, int>& numLines) {
             for(size_t i = 0; i < q.getRelNames().size(); i++) {
@@ -95,7 +271,8 @@ class Index {
             data.resize(tables.size());
             treeBound.resize(tables.size());
             cardinalities.resize(tables.size());
-            varPos.resize(tables.size(), vector<int>(q.getVarNumber(), -1));
+            vecIters.resize(tables.size());
+            varPos.resize(tables.size(), vector<int>(q.getVarNumber(), 0));
             mask.resize(q.getVarNumber(), vector<bool>(tables.size(), false));
             rels.resize(q.getVarNumber(), {});
             for(size_t i = 0; i < data.size(); i++) {
@@ -147,6 +324,12 @@ class Index {
             setAGMandIters(FB);
         }
 
+        long long treeUpp(const vector<pair<int, int> > &bound, const vector<int> &pos, const vector<int> &countRels) {
+            long long res = 1;
+            for(size_t i : countRels) res *= treeBound[i][bound[i].first + pos[i]] - treeBound[i][bound[i].first];
+            return res;
+        }
+
         long long treeUpp(const vector<pair<int, int> > &bound, const vector<int> &countRels) {
             long long res = 1;
             for(size_t i : countRels) res *= treeBound[i][bound[i].second] - treeBound[i][bound[i].first];
@@ -179,6 +362,7 @@ class Index {
             }
             double ans = q.AGM(cardinalities);
             B.AGM = ceil(ans) - ans < 1e-5 ? ceil(ans) : (long long)(ans);
+            if(B.splitDim < jt.countRels.size())B.AGM = min(B.AGM, treeUpp(B.iters, jt.countRels[B.splitDim]));
             // cout << "BEFORE TREEUPP" << endl;
             // B.AGM = min(B.AGM, jt.treeUpp(B.splitDim, B.iters));
             return;
@@ -207,6 +391,7 @@ class Index {
             }
             double ans = q.AGM(cardinalities);
             B.AGM = ceil(ans) - ans < 1e-5 ? ceil(ans) : (long long)(ans);
+            if(B.splitDim < jt.countRels.size())B.AGM = min(B.AGM, treeUpp(B.iters, jt.countRels[B.splitDim]));
             // B.AGM = min(B.AGM, jt.treeUpp(B.splitDim, B.iters));
             return;
         }
@@ -429,14 +614,15 @@ class Index {
             int splitPos, x;
             double ans;
             // vector<int> rels = q.getRels(splitDim);
-
-            vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters(B.iters.size());
+            // vector<int> cardinalities(B.iters.size(), 0);
             for(size_t i = 0; i < B.iters.size(); i++) {
-                vecIters[i].first = B.iters[i].first + data[i][max(0, varPos[i][splitDim])].begin();
-                vecIters[i].second = B.iters[i].second + data[i][max(0, varPos[i][splitDim])].begin();
+                vecIters[i].first = B.iters[i].first + data[i][varPos[i][splitDim]].begin();
+                vecIters[i].second = B.iters[i].second + data[i][varPos[i][splitDim]].begin();
+                // cardinalities[i] = B.iters[i].second - B.iters[i].first;
             }
-
-            splitPos = MultiHeadBinarySearch(vecIters, mask[splitDim], rels[splitDim], B.AGM >> 1, q);
+            // long long BAGM = q.AGM(cardinalities);
+            // BAGM = ceil(BAGM)-BAGM < 1e-5 ? ceil(BAGM) : (long long)(BAGM);
+            splitPos = MultiHeadBinarySearch(B.iters, splitDim, B.AGM >> 1);
             vector<Bucket> result = {};
             
             Bucket Bleft = B, Bmid = B, Bright = B;

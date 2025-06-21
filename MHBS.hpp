@@ -1,3 +1,6 @@
+#include <vector>
+#include <cmath>
+#include "AGM.hpp"
 using namespace std;
 
 

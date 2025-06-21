@@ -167,11 +167,10 @@ private:
             // idx.totalSplitTime += elapsedSplit.count();
         }
         if(offset + B.AGM - node->emptySize < k){
-            trivialInterval.first = offset + B.AGM - getEmptyRight(B, node) + 1;
-            trivialInterval.second = offset + B.AGM;
+            trivialIntervals[0].first = offset + B.AGM - getEmptyRight(B, node) + 1;
+            trivialIntervals[0].second = offset + B.AGM;
             return false;
         }
-            // return make_pair(false, vector<int>({offset + B.AGM - getEmptyRight(B, node) + 1, offset + B.AGM}));
         long long childAGM, temp = 0;
         for(int i = 0; i < node->children_buckets.size() - 1; i++) {
             childAGM = node->children_buckets[i].AGM;
@@ -183,9 +182,8 @@ private:
         int last = node->children_buckets.size() - 1;
         bool res = RRAccess(k, node->children_buckets[last], node->children_pointers[last], offset + temp);
         
-        if(!res && trivialInterval.second == offset + B.AGM - node->emptySize){
-            trivialInterval.second = offset + B.AGM;
-            // return make_pair(false, vector<int>({res.second[0], offset + B.AGM}));
+        if(!res && trivialIntervals[0].second == offset + B.AGM - node->emptySize){
+            trivialIntervals[0].second = offset + B.AGM;
         }
         return res;
     }

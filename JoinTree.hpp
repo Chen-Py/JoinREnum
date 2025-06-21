@@ -1,3 +1,4 @@
+#include <boost/unordered_map.hpp>
 using namespace std;
 
 class JoinTree {
@@ -8,18 +9,70 @@ private:
     vector<int> parent; // parent[i] = parent of node i, -1 if root
     vector<vector<vector<int> > > joinPos; // joinPos[i][j] = the join positions of the edge between i and j
     vector<bool> visVar;
+    vector<boost::unordered_map<vector<int>, int> > cache;
+    vector<vector<int> > treeBound;
 
-    void preProcessing(int node) {
+    void buildLeaves(int node, int fa = -1, int k = -1) {
         if(node < 0 || node >= (int)children.size()) return;
-        for(int i = 0; i < children[node].size(); i++) preProcessing(children[node][i]);
-        for(int i = 0; i < CO[node]->points.size(); i++) {
-            for(int j = 0; j < children[node].size(); j++) {
-                vector<int> joinVals = {};
-                for(int pos : joinPos[node][j]) joinVals.push_back(CO[node]->points[i][pos]);
-                CO[node]->points[i].cnt *= CO[children[node][j]]->sumCnt(Point<int>(joinVals), Point<int>(joinVals));
+        bool flag = true;
+        if(children[node].size() == 0) {
+            if(fa == -1) return;
+            vector<int> joinVals(joinPos[fa][k].size());
+            for(int j = 0; j < joinPos[fa][k].size(); j++) {
+                joinVals[j] = CO[node]->points[0][joinPos[fa][k][j]];
             }
+            cache[node][joinVals] = 1;
+            for(int i = 1; i < CO[node]->points.size(); i++) {
+                flag = true;
+                for(int j = 0; j < joinPos[fa][k].size(); j++) {
+                    joinVals[j] = CO[node]->points[i][j];
+                    if(joinVals[j] != CO[node]->points[i - 1][j]) flag = false;
+                }
+                if(flag) {
+                    cache[node][joinVals]++;
+                }
+                else cache[node][joinVals] = 1;
+            }
+            
+            for(int i = 0; i < CO[node]->points.size(); i++){
+                if(i > 0) CO[node]->points[i].cnt += CO[node]->points[i - 1].cnt;
+            }
+            return;
+        }
+        for(int i = 0; i < children[node].size(); i++) buildLeaves(children[node][i], node, i);
+    }
+
+    void preProcessing(int node, int fa = -1, int k = -1) {
+        if(node < 0 || node >= (int)children.size() || children[node].size() == 0) return;
+        for(int i = 0; i < children[node].size(); i++) preProcessing(children[node][i], node, i);
+        vector<int> joinVals;
+        for(int j = 0; j < children[node].size(); j++) {
+            joinVals.resize(joinPos[node][j].size());
+            for(int i = 0; i < CO[node]->points.size(); i++) {
+                for(int k = 0; k < joinPos[node][j].size(); k++) joinVals[k] = CO[node]->points[i][joinPos[node][j][k]];
+                CO[node]->points[i].cnt *= cache[children[node][j]][joinVals];
+                // cout << "CO[node]->points[i].cnt: " << CO[node]->points[i].cnt << endl;
+                // CO[node]->points[i].cnt *= CO[children[node][j]]->sumCnt(Point<int>(joinVals), Point<int>(joinVals));
+            }
+        }
+        for(int i = 0; i < CO[node]->points.size(); i++){
             if(i > 0) CO[node]->points[i].cnt += CO[node]->points[i - 1].cnt;
         }
+        if(fa == -1) return;
+        bool flag = true;
+        joinVals.resize(joinPos[fa][k].size());
+        for(int i = 1; i < CO[node]->points.size(); i++) {
+            flag = true;
+            for(int j = 0; j < joinPos[fa][k].size(); j++) {
+                joinVals[j] = CO[node]->points[i][j];
+                if(joinVals[j] != CO[node]->points[i - 1][j]) flag = false;
+            }
+            if(flag) {
+                cache[node][joinVals]++;
+            }
+            else cache[node][joinVals] = 1;
+        }
+        
         return;
     }
 
@@ -84,6 +137,8 @@ public:
         parent = vector<int>(q.getRelNames().size(), -1);
         countRels = vector<vector<int> >(q.getVarNumber(), vector<int>());
         visVar = vector<bool>(q.getVarNumber(), false);
+        cache.resize(q.getRelNames().size());
+        treeBound.resize(q.getRelNames().size());
         vector<bool> visited(q.getRelNames().size(), false);
         visited[0] = true;
         que.push(0);
@@ -118,7 +173,16 @@ public:
                 }
             }
         }
+        buildLeaves(root);
+        for(int i = 0; i < cache.size(); i++) {
+            cout << cache[i].size() << " ";
+        }
+        cout << endl;
+            auto startJT = std::chrono::high_resolution_clock::now();
         preProcessing(root);
+            auto endJT = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsedJT = endJT - startJT;
+            cout << "Time to build the JoinTree: " << elapsedJT.count() << " s\n";
         initCountRels(root);
     }
 

@@ -41,7 +41,7 @@ public:
                 
                 cntsuccess++;
                 // if(cntsuccess == 77610){
-                if(cntsuccess % 10000 == 0){
+                if(cntsuccess <= 20 || cntsuccess == 77610 || cntsuccess % 10000 == 0){
                 end = clock();
                 elapsed = double(end - start) / CLOCKS_PER_SEC;
                 cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed << endl;
