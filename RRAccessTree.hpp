@@ -169,6 +169,7 @@ private:
         if(offset + B.AGM - node->emptySize < k){
             trivialIntervals[0].first = offset + B.AGM - getEmptyRight(B, node) + 1;
             trivialIntervals[0].second = offset + B.AGM;
+            numti = 1;
             return false;
         }
         long long childAGM, temp = 0;
@@ -186,6 +187,65 @@ private:
             trivialIntervals[0].second = offset + B.AGM;
         }
         return res;
+    }
+
+
+    bool RRAccess_low(long long k, Bucket &B, RRAccessTreeNode* &node, long long offset = 0) {
+        if(B.getSplitDim() == B.getDim()){
+            result = B.getLowerBound();
+            return true;
+        }
+        if(B.AGM < 0) idx.setAGMandIters(B);
+        if (!node) {
+            // vector<Bucket> children = idx.Split(B);
+            // auto startSplit = chrono::high_resolution_clock::now();
+            node = new RRAccessTreeNode(&B, idx.Split(B));
+            // auto endSplit = chrono::high_resolution_clock::now();
+            // chrono::duration<double> elapsedSplit = endSplit - startSplit;
+            // idx.totalSplitTime += elapsedSplit.count();
+        }
+        long long childAGM, temp = 0;
+        for(int i = 0; i < node->children_buckets.size(); i++) {
+            childAGM = node->children_buckets[i].AGM;
+            if(offset + temp + childAGM >= k){
+                return RRAccess_low(k, node->children_buckets[i], node->children_pointers[i], offset + temp);
+            }
+            else temp += childAGM;
+        }
+        
+        trivialIntervals[0].first = offset + B.AGM - node->emptySize + 1;
+        trivialIntervals[0].second = offset + B.AGM;
+        numti = 1;
+        return false;
+    }
+
+    bool RRAccess_verylow(long long k, Bucket &B, RRAccessTreeNode* &node, long long offset = 0) {
+        if(B.getSplitDim() == B.getDim()){
+            result = B.getLowerBound();
+            return true;
+        }
+        if(B.AGM < 0) idx.setAGMandIters(B);
+        if (!node) {
+            // vector<Bucket> children = idx.Split(B);
+            // auto startSplit = chrono::high_resolution_clock::now();
+            node = new RRAccessTreeNode(&B, idx.Split(B));
+            // auto endSplit = chrono::high_resolution_clock::now();
+            // chrono::duration<double> elapsedSplit = endSplit - startSplit;
+            // idx.totalSplitTime += elapsedSplit.count();
+        }
+        long long childAGM, temp = 0;
+        for(int i = 0; i < node->children_buckets.size(); i++) {
+            childAGM = node->children_buckets[i].AGM;
+            if(offset + temp + childAGM >= k){
+                return RRAccess_verylow(k, node->children_buckets[i], node->children_pointers[i], offset + temp);
+            }
+            else temp += childAGM;
+        }
+        
+        trivialIntervals[0].first = k;
+        trivialIntervals[0].second = k;
+        numti = 1;
+        return false;
     }
 
     
@@ -280,9 +340,24 @@ public:
      *           - if the operation is successful, the vector is the retrieved join result.
      *           - if the operation fails, the vector is an trivial interval.
      */
-    bool RRAccess(long long k) {
+    bool RRAccess_MTI(long long k) {
+        numti = 0;
+        return RRAccess(k, idx.FB, root, 0);
+    }
+
+    bool RRAccess_BTI(long long k) {
         numti = 0;
         return RRAccess_opt(k, idx.FB, root, 0);
+    }
+
+    bool RRAccess_LTI(long long k) {
+        numti = 0;
+        return RRAccess_low(k, idx.FB, root, 0);
+    }
+
+    bool RRAccess(long long k) {
+        numti = 0;
+        return RRAccess_verylow(k, idx.FB, root, 0);
     }
 
     void print(RRAccessTreeNode* node, int depth = 0) {

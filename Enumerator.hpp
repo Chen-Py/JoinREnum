@@ -7,6 +7,8 @@ class Enumerator {
 
 private:
 public:
+    int option = 3; // 0: REnum, 1: REnum_L, 2: REnum_M, 3: REnum_B
+    bool treeflag = false; // true: use TU-S
     RRAccessTree access_tree;
     BanPickTree bp;
 
@@ -16,7 +18,7 @@ public:
         unordered_map<string, int> numlines) :
         access_tree(relations, filenames, numlines),
         // bp(min(access_tree.AGM, access_tree.idx.jt.treeUpp(access_tree.idx.FB))) {}   
-        bp(access_tree.AGM) {}
+        bp(access_tree.AGM) {access_tree.idx.treeflag = treeflag;}
     void random_enumerate() {
         double totalRRAccessTime = 0;
         int cntsuccess = 0, cnt = 0, step = 20;
@@ -24,11 +26,20 @@ public:
         clock_t end;
         double elapsed = 0;
         double last_percentage = 0;
+        long long s;
+        bool res;
         while(bp.remaining()){
             cnt++;
-            long long s = bp.pick();
+            s = bp.pick();
             // auto startRRAccess = std::chrono::high_resolution_clock::now();
-            bool res = access_tree.RRAccess(s);
+            switch(option) {
+                case 0: res = access_tree.RRAccess(s); break;
+                case 1: res = access_tree.RRAccess_LTI(s); break;
+                case 2: res = access_tree.RRAccess_MTI(s); break;
+                case 3: res = access_tree.RRAccess_BTI(s); break;
+                default: res = access_tree.RRAccess_BTI(s); break;
+            }
+            // res = access_tree.RRAccess_BTI(s);
             // auto endRRAccess = std::chrono::high_resolution_clock::now();
             // std::chrono::duration<double> elapsedRRAccess = endRRAccess - startRRAccess;
             // totalRRAccessTime += elapsedRRAccess.count();
@@ -41,7 +52,7 @@ public:
                 
                 cntsuccess++;
                 // if(cntsuccess == 77610){
-                if(cntsuccess <= 20 || cntsuccess == 77610 || cntsuccess % 10000 == 0){
+                if(cntsuccess <= 20 || cntsuccess % 10000 == 0){
                 end = clock();
                 elapsed = double(end - start) / CLOCKS_PER_SEC;
                 cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed << endl;

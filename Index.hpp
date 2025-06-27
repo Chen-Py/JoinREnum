@@ -22,6 +22,7 @@ class Index {
         vector<vector<int> > rels;
         vector<int> cardinalities;
         vector<pair<vector<int>::iterator, vector<int>::iterator> > vecIters;
+        bool treeflag = false;
         // vector<int> attVal;
         // vector<vector<Point<int> >::iterator> beginIters;
         int cntCacheHit = 0;
@@ -164,7 +165,7 @@ class Index {
                     getpos(iters, bounds, splitDim, data[i][varPos[i][splitDim]][iters[i].first] + 1, tmppos);
                     res = q.AGM(tmppos);
                     upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
-                    if(splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, tmppos, jt.countRels[splitDim]));
+                    if(treeflag && splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, tmppos, jt.countRels[splitDim]));
             // if(B.splitDim < jt.countRels.size())B.AGM = min(B.AGM, treeUpp(B.iters, jt.countRels[B.splitDim]));
                     if(upp > target) return data[i][varPos[i][splitDim]][iters[i].first];
                     else pos[i] = iters[i].second - iters[i].first;
@@ -184,7 +185,7 @@ class Index {
                 }
                 res = q.AGM(pos);
                 upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
-                if(splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, pos, jt.countRels[splitDim]));
+                if(treeflag && splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, pos, jt.countRels[splitDim]));
                 if(upp <= target) {
                     bounds[mini].first = itermid[mini];
                     if(bounds[mini].second - bounds[mini].first <= 1) {
@@ -193,7 +194,7 @@ class Index {
                         getpos(iters, bounds, splitDim, data[mini][varPos[mini][splitDim]][bounds[mini].first] + 1, tmppos);
                         res = q.AGM(tmppos);
                         upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
-                        if(splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, tmppos, jt.countRels[splitDim]));
+                        if(treeflag && splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, tmppos, jt.countRels[splitDim]));
                         if(upp > target) return data[mini][varPos[mini][splitDim]][bounds[mini].first];
                         else pos[mini] = bounds[mini].second - iters[mini].first;
                         cnt++;
@@ -211,7 +212,7 @@ class Index {
                         getpos(iters, bounds, splitDim, data[maxi][varPos[maxi][splitDim]][bounds[maxi].first] + 1, tmppos);
                         res = q.AGM(tmppos);
                         upp = ceil(res) - res < 1e-5 ? ceil(res) : (long long)(res);
-                        if(splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, tmppos, jt.countRels[splitDim]));
+                        if(treeflag && splitDim < jt.countRels.size()) upp = min(upp, treeUpp(iters, tmppos, jt.countRels[splitDim]));
                         if(upp > target) return data[maxi][varPos[maxi][splitDim]][bounds[maxi].first];
                         else pos[maxi] = bounds[maxi].second - iters[maxi].first;
                         cnt++;
@@ -362,7 +363,7 @@ class Index {
             }
             double ans = q.AGM(cardinalities);
             B.AGM = ceil(ans) - ans < 1e-5 ? ceil(ans) : (long long)(ans);
-            if(B.splitDim < jt.countRels.size())B.AGM = min(B.AGM, treeUpp(B.iters, jt.countRels[B.splitDim]));
+            if(treeflag && B.splitDim < jt.countRels.size())B.AGM = min(B.AGM, treeUpp(B.iters, jt.countRels[B.splitDim]));
             // cout << "BEFORE TREEUPP" << endl;
             // B.AGM = min(B.AGM, jt.treeUpp(B.splitDim, B.iters));
             return;
@@ -391,7 +392,7 @@ class Index {
             }
             double ans = q.AGM(cardinalities);
             B.AGM = ceil(ans) - ans < 1e-5 ? ceil(ans) : (long long)(ans);
-            if(B.splitDim < jt.countRels.size())B.AGM = min(B.AGM, treeUpp(B.iters, jt.countRels[B.splitDim]));
+            if(treeflag && B.splitDim < jt.countRels.size())B.AGM = min(B.AGM, treeUpp(B.iters, jt.countRels[B.splitDim]));
             // B.AGM = min(B.AGM, jt.treeUpp(B.splitDim, B.iters));
             return;
         }

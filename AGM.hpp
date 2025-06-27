@@ -177,19 +177,19 @@ class Query{
 
         double AGM(vector<int> &cars){
             for (int i = 0; i < cars.size(); i++)if(cars[i] <= 0)return 0;
-            // double ans0 = sqrt((double)cars[0] * cars[1] * cars[2]) * sqrt((double)cars[3] * cars[4] * cars[5]);
+            // double ans0 = cbrt((double)cars[0] * cars[1] * cars[2]) * cbrt((double)cars[3] * cars[4] * cars[5]);
             // double ans1 = (double)cars[1] * cars[2];
             // double ans2 = (double)cars[0] * cars[3];
             // double ans3 = (double)cars[4] * cars[5];
-            // return min(min(ans0, ans1), min(ans2, ans3));
+            // return min(ans1, min(ans2, ans3));
             if(true){
                 // return sqrt(cars[0]) * sqrt(cars[1]) * sqrt(cars[2]);
-                long long ans0 = (long long) cars[0] * cars[1] * cars[2];
+                double ans0 = sqrt((long long) cars[0] * cars[1]) * sqrt(cars[2]);
                 double ans1 = (double)cars[0] * cars[1],
                     ans2 = (double)cars[0] * cars[2],
                     ans3 = (double)cars[1] * cars[2];
                 // if(res != ans1) cout << "ERROR: " << ans1 << " " << ans2 << " " << ans3 << " " << ans4 << endl;
-                return min(min(sqrt(ans0), ans1), min(ans2, ans3));
+                return min(min(ans0, ans1), min(ans2, ans3));
             }
             if(true){
                 double ans1 = 1;
