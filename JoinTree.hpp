@@ -19,7 +19,7 @@ private:
             if(fa == -1) return;
             vector<int> joinVals(joinPos[fa][k].size());
             for(int j = 0; j < joinPos[fa][k].size(); j++) {
-                joinVals[j] = CO[node]->points[0][joinPos[fa][k][j]];
+                joinVals[j] = CO[node]->points[0][j];
             }
             cache[node][joinVals] = 1;
             for(int i = 1; i < CO[node]->points.size(); i++) {
