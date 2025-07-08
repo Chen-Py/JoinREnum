@@ -1,6 +1,6 @@
 # JoinREnum
 
-Generate the database
+Generate an example database
 ```bash
 python dbgen.py
 ```
