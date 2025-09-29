@@ -16,6 +16,7 @@ void printInfo(Index &idx) {
     cout << "Total Binary Search Loop: " << idx.cntBSCall << endl;
     cout << "Total Cache Hit Time: " << idx.totalCacheHitTime << endl;
     cout << "Total Bound Prepare Time: " << idx.totalBoundPrepareTime << endl;
+    cout << "Total RRTree Nodes: " << idx.totalrrtreenode << endl;
     return;
 }
 

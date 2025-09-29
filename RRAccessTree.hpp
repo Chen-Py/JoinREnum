@@ -69,6 +69,27 @@ public:
     }
 };
 
+class RRAccessTreeNode_Pool {
+public:
+    long long emptySize;
+    int bid;
+    vector<int> children_bids;
+    vector<long long> children_agms;
+    vector<RRAccessTreeNode_Pool*> children_pointers;
+    RRAccessTreeNode_Pool(const int bid, const vector<int> && children_bids, const BucketPool &pool) : bid(bid), children_bids(move(children_bids)) {
+        children_agms = vector<long long>(this->children_bids.size());
+        emptySize = pool[bid].AGM;
+        // cout << "children_AGMs: ";
+        for(int i = 0; i < children_bids.size(); i++) {
+            children_agms[i] = pool[children_bids[i]].AGM;
+            emptySize -= children_agms[i];
+            // cout << children_agms[i] << ", ";
+        }
+        // cout << endl;
+        children_pointers = vector<RRAccessTreeNode_Pool*>(this->children_bids.size(), NULL);
+    }
+};
+
 class RRAccessTree {
 private:
 
@@ -113,6 +134,8 @@ private:
             // vector<Bucket> children = idx.Split(B);
             // auto startSplit = chrono::high_resolution_clock::now();
             node = new RRAccessTreeNode(&B, idx.Split(B));
+            idx.totalrrtreenode += node->children_buckets.size();
+            idx.totalrrtreenode --;
             // auto endSplit = chrono::high_resolution_clock::now();
             // chrono::duration<double> elapsedSplit = endSplit - startSplit;
             // idx.totalSplitTime += elapsedSplit.count();
@@ -126,12 +149,16 @@ private:
     bool RRAccess_opt(long long k, Bucket &B, RRAccessTreeNode* &node, long long offset = 0) {
         if(B.getSplitDim() == B.getDim()){
             result = B.getLowerBound();
+            idx.totalrrtreenode --;
             return true;
         }
         if(B.AGM < 0) idx.setAGMandIters(B);
         if (!node) {
             // auto startSplit = chrono::high_resolution_clock::now();
             node = new RRAccessTreeNode(&B, idx.Split(B));
+            
+            idx.totalrrtreenode += node->children_buckets.size();
+            idx.totalrrtreenode --;
             // auto endSplit = chrono::high_resolution_clock::now();
             // chrono::duration<double> elapsedSplit = endSplit - startSplit;
             // idx.totalSplitTime += elapsedSplit.count();
@@ -249,15 +276,144 @@ private:
     }
 
     
+    long long getEmptyRight_NoCache(Bucket &B) {
+        if (B.AGM < 0) idx.setAGMandIters(B);
+        if (B.getSplitDim() == B.getDim()) return 1 - B.AGM;
+        
+        vector<Bucket> children = idx.Split(B);
+        long long emptyright = children.size() > 0 ? getEmptyRight_NoCache(children[children.size() - 1]) : 0;
+
+        long long emptySize = B.AGM;
+        for(int i = 0; i < children.size(); i++) {
+            emptySize -= children[i].AGM;
+        }
+
+        return emptySize + emptyright;
+    }
+
+
+    long long getEmptyRight_HalfCache(Bucket &B, RRAccessTreeNode* &node, int depth = 0) {
+        if(depth > cacheHeightBound) return 0;
+        if (B.AGM < 0) idx.setAGMandIters(B);
+        if (B.getSplitDim() == B.getDim()) return 1 - B.AGM;
+        if(!node) {
+            node  = new RRAccessTreeNode(&B, idx.Split(B));
+        }
+        long long emptyright = node->children_buckets.size() > 0 ? getEmptyRight_HalfCache(node->children_buckets[node->children_buckets.size() - 1], node->children_pointers[node->children_pointers.size() - 1], depth + 1) : 0;
+        return node->emptySize + emptyright;
+    }
+
+    long long getEmptyRight_HalfCache(int bid, RRAccessTreeNode_Pool* &node, int depth = 0) {
+        if(depth > cacheHeightBound) return 0;
+        if (!node && pool[bid].getSplitDim() == pool[bid].getDim()) return 1 - pool[bid].AGM;
+        if(!node) {
+            node  = new RRAccessTreeNode_Pool(bid, idx.Split_pool(pool, bid), pool);
+            pool.free(bid);
+        }
+        long long emptyright = node->children_bids.size() > 0 ? getEmptyRight_HalfCache(node->children_bids[node->children_bids.size() - 1], node->children_pointers[node->children_pointers.size() - 1], depth + 1) : 0;
+        return node->emptySize + emptyright;
+    }
+
+    bool RRAccess_HalfCache(long long k, Bucket &B, RRAccessTreeNode* &node, long long offset = 0, int depth = 0) {
+        if(depth > cacheHeightBound) return RRAccess_NoCache(k, B, offset, depth);
+        if(B.getSplitDim() == B.getDim()){
+            result = B.getLowerBound();
+            return true;
+        }
+        if(B.AGM < 0) idx.setAGMandIters(B);
+        if(!node) {
+            node  = new RRAccessTreeNode(&B, idx.Split(B));
+            numti++;
+            trivialIntervals[numti - 1].first = offset + B.AGM - getEmptyRight_HalfCache(B, node, depth) + 1;
+            trivialIntervals[numti - 1].second = offset + B.AGM;
+        }
+        
+        if(offset + B.AGM - node->emptySize < k){
+            return false;
+        }
+        long long childAGM, temp = 0;
+        for(int i = 0; i < node->children_buckets.size() ; i++) {
+            childAGM = node->children_buckets[i].AGM;
+            if(offset + temp + childAGM >= k) {
+                return RRAccess_HalfCache(k, node->children_buckets[i], node->children_pointers[i], offset + temp, depth + 1);
+            }
+            else temp += childAGM;
+        }
+        return false;
+    }
+
+
+    bool RRAccess_HalfCache(long long k, int bid, RRAccessTreeNode_Pool* &node, long long BAGM, long long offset = 0, int depth = 0) {
+        if(depth > cacheHeightBound) return RRAccess_NoCache(k, pool[bid], offset, depth);
+        if(!node && pool[bid].getSplitDim() == pool[bid].getDim()){
+            result = pool[bid].getLowerBound();
+            return true;
+        }
+        if(!node) {
+            node  = new RRAccessTreeNode_Pool(bid, idx.Split_pool(pool, bid), pool);
+            pool.free(bid);
+            numti++;
+            trivialIntervals[numti - 1].first = offset + BAGM - getEmptyRight_HalfCache(bid, node, depth) + 1;
+            trivialIntervals[numti - 1].second = offset + BAGM;
+        }
+        
+        if(offset + BAGM - node->emptySize < k){
+            return false;
+        }
+        long long childAGM, temp = 0;
+        for(int i = 0; i < node->children_agms.size() ; i++) {
+            childAGM = node->children_agms[i];
+            if(offset + temp + childAGM >= k) {
+                return RRAccess_HalfCache(k, node->children_bids[i], node->children_pointers[i], childAGM, offset + temp, depth + 1);
+            }
+            else temp += childAGM;
+        }
+        return false;
+    }
+
+    
+
+
+    bool RRAccess_NoCache(long long k, Bucket &B, long long offset = 0, int depth = 0) {
+        if(B.getSplitDim() == B.getDim()){
+            result = B.getLowerBound();
+            return true;
+        }
+        if(B.AGM < 0) idx.setAGMandIters(B);
+        vector<Bucket> children = idx.Split(B);
+
+        long long childAGM, temp = 0;
+        for(int i = 0; i < children.size(); i++) {
+            childAGM = children[i].AGM;
+            if(offset + temp + childAGM >= k){
+                bool res = RRAccess_NoCache(k, children[i], offset + temp, depth + 1);
+                if(i == children.size() - 1 && !res && trivialIntervals[numti - 1].second == offset + temp + childAGM) trivialIntervals[numti - 1].second = offset + B.AGM;
+                
+                return res;
+            }
+            else temp += childAGM;
+        }
+        
+        numti++;
+        trivialIntervals[numti - 1].first = offset + B.AGM - getEmptyRight_NoCache(B) + 1;
+        trivialIntervals[numti - 1].second = offset + B.AGM;
+        
+        return false;
+    }
+
+    
     
 
 public:
     long long AGM;
+    int cacheHeightBound = 18;
     RRAccessTreeNode* root = NULL;
+    RRAccessTreeNode_Pool* root_pool = NULL;
     Index idx;
     vector<int> result;
     pair<long long, long long> trivialInterval;
     vector<pair<long long, long long> > trivialIntervals = vector<pair<long long, long long> >(50);
+    BucketPool pool;
     int numti = 0;
 
     RRAccessTree() {}
@@ -279,7 +435,7 @@ public:
     RRAccessTree(
         const unordered_map<string, vector<string> > &relations,
         const unordered_map<string, string> &filenames,
-        const unordered_map<string, int> &numlines) {
+        const unordered_map<string, int> &numlines, bool treeflag = false) {
         vector<string> q_relations;
         vector<vector<string> > q_variables;
         for(unordered_map<string, vector<string> >::const_iterator it = relations.begin(); it != relations.end(); it++) {
@@ -291,9 +447,11 @@ public:
             q_variables.push_back(relations.at(q_relations[i]));
         }
         Query q(q_relations, q_variables);
-        idx = Index(q);
+        idx = Index(q, treeflag);
         idx.preProcessing(relations, filenames, numlines);
         AGM = idx.AGM();
+        pool.newCopy(idx.FB);
+        // cout << "AGM: " << AGM << endl;
     }
 
     /**
@@ -359,6 +517,18 @@ public:
         numti = 0;
         return RRAccess_verylow(k, idx.FB, root, 0);
     }
+
+    bool RRAccess_NoCache(long long k) {
+        numti = 0;
+        bool res = RRAccess_HalfCache(k, idx.FB, root);
+        return res;
+    }
+
+    bool RRAccess_NoCache_Pool(long long k) {
+        numti = 0;
+        return RRAccess_HalfCache(k, 0, root_pool, AGM);
+    }
+
 
     void print(RRAccessTreeNode* node, int depth = 0) {
         for (int i = 0; i < depth; i++) cout << "| ";

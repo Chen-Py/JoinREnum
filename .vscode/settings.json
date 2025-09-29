@@ -87,6 +87,9 @@
         "barrier": "cpp",
         "latch": "cpp",
         "semaphore": "cpp",
-        "syncstream": "cpp"
+        "syncstream": "cpp",
+        "stacktrace": "cpp",
+        "spanstream": "cpp",
+        "stdfloat": "cpp"
     }
 }

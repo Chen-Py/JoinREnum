@@ -27,7 +27,7 @@ class Bucket {
          * @note If all dimensions of the lower and upper bounds are equal, splitDim
          *       will be set to the size of the lowerBound vector.
          */
-        Bucket(vector<int> lowerBound, vector<int> upperBound, int splitDim = 0) : lowerBound(lowerBound), upperBound(upperBound), splitDim(splitDim) {
+        Bucket(const vector<int> &lowerBound, const vector<int> &upperBound, int splitDim = 0) : lowerBound(lowerBound), upperBound(upperBound), splitDim(splitDim) {
             while(splitDim < lowerBound.size() && lowerBound[splitDim] == upperBound[splitDim])splitDim++;
         }
 
@@ -41,6 +41,36 @@ class Bucket {
 
         const vector<int>& getUpperBound() const {
             return upperBound;
+        }
+
+        void reset(const vector<int> &newLowerBound, const vector<int> &newUpperBound, int newSplitDim = 0) {
+            if(lowerBound.size() != newLowerBound.size() || upperBound.size() != newUpperBound.size()){
+                cout << "Bucket size mismatch @ reset" << endl;
+                lowerBound = newLowerBound;
+                upperBound = newUpperBound;
+            }
+            copy(newLowerBound.begin(), newLowerBound.end(), lowerBound.begin());
+            copy(newUpperBound.begin(), newUpperBound.end(), upperBound.begin());
+            splitDim = newSplitDim;
+            AGM = -1;
+            // this->iters.clear();
+            while(splitDim < lowerBound.size() && lowerBound[splitDim] == upperBound[splitDim])splitDim++;
+            return;
+        }
+
+        void reset(const Bucket &B) {
+            if(lowerBound.size() != B.lowerBound.size() || upperBound.size() != B.upperBound.size()){
+                cout << "Bucket size mismatch @ reset" << endl;
+                lowerBound = B.lowerBound;
+                upperBound = B.upperBound;
+            }
+            copy(B.lowerBound.begin(), B.lowerBound.end(), lowerBound.begin());
+            copy(B.lowerBound.begin(), B.upperBound.end(), upperBound.begin());
+            splitDim = B.splitDim;
+            AGM = -1;
+            // this->iters.clear();
+            while(splitDim < lowerBound.size() && lowerBound[splitDim] == upperBound[splitDim])splitDim++;
+            return;
         }
 
         /**

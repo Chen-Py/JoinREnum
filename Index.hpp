@@ -3,6 +3,7 @@
 #include "Parcel.h"
 #include "Bucket.hpp"
 #include "JoinTree.hpp"
+#include "BucketPool.hpp"
 // #include "MHBS.hpp"
 using namespace std;
 
@@ -30,6 +31,7 @@ class Index {
         int cntAGMCall = 0;
         int cntSplitCall = 0;
         int cntBSCall = 0;
+        int totalrrtreenode = 0;
         double totalAGMTime = 0;
         double totalCountOracleTime = 0;
         double totalSplitTime = 0;
@@ -38,7 +40,7 @@ class Index {
 
         Index() {};
 
-        Index(Query q) : q(q) {};
+        Index(Query q, bool treeflag = false) : q(q), treeflag(treeflag) {};
 
         // Index(
         //     const unordered_map<string, vector<string> >& relations,
@@ -189,7 +191,8 @@ class Index {
                 if(upp <= target) {
                     bounds[mini].first = itermid[mini];
                     if(bounds[mini].second - bounds[mini].first <= 1) {
-                        if(data[mini][varPos[mini][splitDim]][bounds[mini].first] == data[mini][varPos[mini][splitDim]][bounds[mini].second])
+                        // cout << "mini: " << mini << ", bounds[mini]: [" << bounds[mini].first << ", " << bounds[mini].second << "]" << endl;
+                        if(bounds[mini].second < data[mini][varPos[mini][splitDim]].size() && data[mini][varPos[mini][splitDim]][bounds[mini].first] == data[mini][varPos[mini][splitDim]][bounds[mini].second])
                             return data[mini][varPos[mini][splitDim]][bounds[mini].first];
                         getpos(iters, bounds, splitDim, data[mini][varPos[mini][splitDim]][bounds[mini].first] + 1, tmppos);
                         res = q.AGM(tmppos);
@@ -207,7 +210,7 @@ class Index {
                 else {
                     bounds[maxi].second = itermid[maxi];
                     if(bounds[maxi].second - bounds[maxi].first <= 1) {
-                        if(data[maxi][varPos[maxi][splitDim]][bounds[maxi].first] == data[maxi][varPos[maxi][splitDim]][bounds[maxi].second])
+                        if(bounds[maxi].second < data[maxi][varPos[maxi][splitDim]].size() && data[maxi][varPos[maxi][splitDim]][bounds[maxi].first] == data[maxi][varPos[maxi][splitDim]][bounds[maxi].second])
                             return data[maxi][varPos[maxi][splitDim]][bounds[maxi].first];
                         getpos(iters, bounds, splitDim, data[maxi][varPos[maxi][splitDim]][bounds[maxi].first] + 1, tmppos);
                         res = q.AGM(tmppos);
@@ -372,7 +375,7 @@ class Index {
         
         void setAGMandIters(Bucket &B, const vector<pair<vector<Point<int> >::iterator, vector<Point<int> >::iterator> >& iters = {}) {
             int relnum = R.size();
-            B.iters = vector<pair<int, int> >(relnum);
+            if(B.iters.size() != relnum) B.iters = vector<pair<int, int> >(relnum);
             vector<int> cardinalities(relnum, 0);
             vector<int> lower_bound = {};
             vector<int> upper_bound = {};
@@ -623,6 +626,10 @@ class Index {
             }
             // long long BAGM = q.AGM(cardinalities);
             // BAGM = ceil(BAGM)-BAGM < 1e-5 ? ceil(BAGM) : (long long)(BAGM);
+            // for(size_t i = 0; i < B.iters.size(); i++) {
+            //     cout << "[" << B.iters[i].first << ", " << B.iters[i].second << "] ";
+            // }
+            // cout << endl;
             splitPos = MultiHeadBinarySearch(B.iters, splitDim, B.AGM >> 1);
             vector<Bucket> result = {};
             
@@ -664,6 +671,33 @@ class Index {
             if(splitPos - 1 >= B.lowerBound[splitDim] && Bleft.AGM > 0) result.push_back(move(Bleft));
             
             return result;
+        }
+
+
+        vector<int> Split_pool(BucketPool &pool, int bid) {
+            // cout << "SPLIT: ";
+            // pool[bid].print();
+            vector<Bucket> result = splitBucket(pool[bid]);
+            // cout << "INTO " << result.size() << " BUCKETS" << endl;
+            // for(int i = 0; i < result.size(); i++) {
+            //     pool[result[i]].print();
+            // }
+            // cout << "----------------" << endl;
+            while(result.size() == 1 && result[0].splitDim != result[0].getDim()){
+                result = splitBucket(result[0]);
+            }
+            // return result;
+            vector<int> Bid = vector<int>(result.size(), 0);
+            for(size_t i = 0; i < result.size(); i++) {
+                Bid[i] = pool.newCopy(result[i]);
+                pool[Bid[i]].AGM = result[i].AGM;
+                if(pool[Bid[i]].iters.size() != result[i].iters.size()) pool[Bid[i]].iters = vector<pair<int, int> >(move(result[i].iters));
+                else for(int j = 0; j < result[i].iters.size(); j++){
+                    pool[Bid[i]].iters[j].first = result[i].iters[j].first;
+                    pool[Bid[i]].iters[j].second = result[i].iters[j].second;
+                }
+            }
+            return Bid;
         }
 
         vector<Bucket> Split(Bucket &B) {

@@ -1,14 +1,30 @@
 #include "BanPickTree.hpp"
 #include "RRAccessTree.hpp"
+#include <sys/resource.h>
 #include <ctime>
 using namespace std;
+
+size_t getMemoryUsage() {
+    std::ifstream stat_stream("/proc/self/status");
+    std::string line;
+    size_t memory = 0;
+
+    while (std::getline(stat_stream, line)) {
+        if (line.substr(0, 6) == "VmRSS:") {
+            std::string mem_str = line.substr(6);
+            memory = std::stoul(mem_str);
+            break;
+        }
+    }
+    return memory; // in KB
+}
 
 class Enumerator {
 
 private:
 public:
-    int option = 3; // 0: REnum, 1: REnum_L, 2: REnum_M, 3: REnum_B
-    bool treeflag = false; // true: use TU-S
+    int option = 5; // 0: REnum, 1: REnum_L(Larger), 2: REnum_M(Merge), 3: REnum_B(Batch), 4: REnum_NC(NoCache), 5: REnum_NC_Pool
+    bool treeflag = true; // true: use TU-S
     RRAccessTree access_tree;
     BanPickTree bp;
 
@@ -16,7 +32,7 @@ public:
         unordered_map<string, vector<string> > relations,
         unordered_map<string, string> filenames,
         unordered_map<string, int> numlines) :
-        access_tree(relations, filenames, numlines),
+        access_tree(relations, filenames, numlines, treeflag),
         // bp(min(access_tree.AGM, access_tree.idx.jt.treeUpp(access_tree.idx.FB))) {}   
         bp(access_tree.AGM) {access_tree.idx.treeflag = treeflag;}
     void random_enumerate() {
@@ -28,7 +44,9 @@ public:
         double last_percentage = 0;
         long long s;
         bool res;
+        struct rusage r_usage;
         while(bp.remaining()){
+            // cout << "REMAINING: " << bp.remaining() << endl;
             cnt++;
             s = bp.pick();
             // auto startRRAccess = std::chrono::high_resolution_clock::now();
@@ -37,6 +55,8 @@ public:
                 case 1: res = access_tree.RRAccess_LTI(s); break;
                 case 2: res = access_tree.RRAccess_MTI(s); break;
                 case 3: res = access_tree.RRAccess_BTI(s); break;
+                case 4: res = access_tree.RRAccess_NoCache(s); break;
+                case 5: res = access_tree.RRAccess_NoCache_Pool(s); break;
                 default: res = access_tree.RRAccess_BTI(s); break;
             }
             // res = access_tree.RRAccess_BTI(s);
@@ -55,7 +75,8 @@ public:
                 if(cntsuccess <= 20 || cntsuccess % 10000 == 0){
                 end = clock();
                 elapsed = double(end - start) / CLOCKS_PER_SEC;
-                cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed << endl;
+                getrusage(RUSAGE_SELF, &r_usage);
+                cout << cntsuccess << ", " << cnt << ", " << bp.remaining() << ", " << bp.getPercentage() << ", " << elapsed  << ", "<< r_usage.ru_maxrss/1024 << "MB, " << access_tree.idx.totalrrtreenode << endl;
                 }
             }
             // if(cnt % 100 == 0){
