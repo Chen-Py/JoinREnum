@@ -23,7 +23,16 @@ class Enumerator {
 
 private:
 public:
-    int option = 5; // 0: REnum, 1: REnum_L(Larger), 2: REnum_M(Merge), 3: REnum_B(Batch), 4: REnum_NC(NoCache), 5: REnum_NC_Pool
+    int option = 6;
+    /*
+        0: REnum,
+        1: REnum_L(Larger),
+        2: REnum_M(Merge),
+        3: REnum_B(Batch),
+        4: REnum_HC(HalfCache),
+        5: REnum_HC_Pool (MTI on Nocache levels)
+        6: REnum_HC_Pool_basic (basic LTI on Nocache levels)
+    */
     bool treeflag = true; // true: use TU-S
     RRAccessTree access_tree;
     BanPickTree bp;
@@ -55,8 +64,9 @@ public:
                 case 1: res = access_tree.RRAccess_LTI(s); break;
                 case 2: res = access_tree.RRAccess_MTI(s); break;
                 case 3: res = access_tree.RRAccess_BTI(s); break;
-                case 4: res = access_tree.RRAccess_NoCache(s); break;
-                case 5: res = access_tree.RRAccess_NoCache_Pool(s); break;
+                case 4: res = access_tree.RRAccess_HalfCache(s); break;
+                case 5: res = access_tree.RRAccess_HalfCache_Pool(s); break;
+                case 6: res = access_tree.RRAccess_HalfCache_Pool_basic(s); break;
                 default: res = access_tree.RRAccess_BTI(s); break;
             }
             // res = access_tree.RRAccess_BTI(s);

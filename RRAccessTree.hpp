@@ -342,6 +342,34 @@ private:
         return false;
     }
 
+    bool RRAccess_HalfCache_basic(long long k, int bid, RRAccessTreeNode_Pool* &node, long long BAGM, long long offset = 0, int depth = 0) {
+        if(depth > cacheHeightBound) return RRAccess_NoCache_basic(k, pool[bid], offset, depth);
+        if(!node && pool[bid].getSplitDim() == pool[bid].getDim()){
+            result = pool[bid].getLowerBound();
+            return true;
+        }
+        if(!node) {
+            node  = new RRAccessTreeNode_Pool(bid, idx.Split_pool(pool, bid), pool);
+            pool.free(bid);
+            numti++;
+            trivialIntervals[numti - 1].first = offset + BAGM - getEmptyRight_HalfCache(bid, node, depth) + 1;
+            trivialIntervals[numti - 1].second = offset + BAGM;
+        }
+        
+        if(offset + BAGM - node->emptySize < k){
+            return false;
+        }
+        long long childAGM, temp = 0;
+        for(int i = 0; i < node->children_agms.size() ; i++) {
+            childAGM = node->children_agms[i];
+            if(offset + temp + childAGM >= k) {
+                return RRAccess_HalfCache_basic(k, node->children_bids[i], node->children_pointers[i], childAGM, offset + temp, depth + 1);
+            }
+            else temp += childAGM;
+        }
+        return false;
+    }
+
 
     bool RRAccess_HalfCache(long long k, int bid, RRAccessTreeNode_Pool* &node, long long BAGM, long long offset = 0, int depth = 0) {
         if(depth > cacheHeightBound) return RRAccess_NoCache(k, pool[bid], offset, depth);
@@ -380,7 +408,7 @@ private:
             return true;
         }
         if(B.AGM < 0) idx.setAGMandIters(B);
-        vector<Bucket> children = idx.Split(B);
+        vector<Bucket> children = move(idx.Split(B));
 
         long long childAGM, temp = 0;
         for(int i = 0; i < children.size(); i++) {
@@ -396,6 +424,28 @@ private:
         
         numti++;
         trivialIntervals[numti - 1].first = offset + B.AGM - getEmptyRight_NoCache(B) + 1;
+        trivialIntervals[numti - 1].second = offset + B.AGM;
+        
+        return false;
+    }
+
+    bool RRAccess_NoCache_basic(long long k, Bucket &B, long long offset = 0, int depth = 0) {
+        if(B.getSplitDim() == B.getDim()){
+            result = B.getLowerBound();
+            return true;
+        }
+        if(B.AGM < 0) idx.setAGMandIters(B);
+        vector<Bucket> children = move(idx.Split(B));
+
+        long long childAGM, temp = 0;
+        for(int i = 0; i < children.size(); i++) {
+            childAGM = children[i].AGM;
+            if(offset + temp + childAGM >= k) return RRAccess_NoCache_basic(k, children[i], offset + temp, depth + 1);
+            else temp += childAGM;
+        }
+        
+        numti++;
+        trivialIntervals[numti - 1].first = offset + temp + 1;
         trivialIntervals[numti - 1].second = offset + B.AGM;
         
         return false;
@@ -518,15 +568,20 @@ public:
         return RRAccess_verylow(k, idx.FB, root, 0);
     }
 
-    bool RRAccess_NoCache(long long k) {
+    bool RRAccess_HalfCache(long long k) {
         numti = 0;
         bool res = RRAccess_HalfCache(k, idx.FB, root);
         return res;
     }
 
-    bool RRAccess_NoCache_Pool(long long k) {
+    bool RRAccess_HalfCache_Pool(long long k) {
         numti = 0;
         return RRAccess_HalfCache(k, 0, root_pool, AGM);
+    }
+
+    bool RRAccess_HalfCache_Pool_basic(long long k) {
+        numti = 0;
+        return RRAccess_HalfCache_basic(k, 0, root_pool, AGM);
     }
 
 
