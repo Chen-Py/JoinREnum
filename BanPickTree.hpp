@@ -55,6 +55,18 @@ private:
             v = nv;
             return;
         }
+        if (pool[nv].high == pool[v].low - 1) {
+            pool[v].low = pool[nv].low;
+            pool[v].update(pool);
+            pool.pop_back();
+            return;
+        }
+        if (pool[nv].low == pool[v].high + 1) {
+            pool[v].high = pool[nv].high;
+            pool[v].update(pool);
+            pool.pop_back();
+            return;
+        }
         if (pool[nv] < pool[v]) {
             insertSubTree(pool[v].left, nv);
             if (pool[v].left != -1 && pool[pool[v].left].height - (pool[v].right != -1 ? pool[pool[v].right].height : 0) == 2) {
@@ -111,6 +123,7 @@ public:
     }
 
     void ban(long long low, long long high) {
+        if (low > high) return;
         if (root == -1) {
             pool.emplace_back(low, high);
             root = pool.size() - 1;
