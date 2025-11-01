@@ -16,7 +16,7 @@ private:
 
 public:
 
-    int cnt = 1;
+    long long cnt = 1;
     
     /**
      * Constructs an empty point.

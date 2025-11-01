@@ -17,7 +17,7 @@ class Index {
         vector<vector<int> > R;
         vector<Table<Parcel> > tables;
         vector<vector<vector<int> > > data;
-        vector<vector<int> > treeBound;
+        vector<vector<long long> > treeBound;
         vector<vector<int> > varPos; // varPos[i][j] = the position of the j-th variable in the i-th relation, -1 if not found
         vector<vector<bool> > mask;
         vector<vector<int> > rels;
@@ -313,8 +313,10 @@ class Index {
                 cout << endl;
             }
             // cout << "ATTVAL: " << attVal.size() << endl;
+            
+            setAGMandIters(FB);
             q.print();
-            cout << "TreeUpperBound: " << jt.treeUpp(FB) << endl;
+            cout << "TreeUpperBound: " << treeUpp(FB.iters, jt.countRels[FB.splitDim]) << endl;
             jt.print();
             cout << "CountRels: " << endl;
             for(size_t i = 0; i < jt.countRels.size(); i++) {
@@ -325,7 +327,6 @@ class Index {
                 cout << endl;
 
             }
-            setAGMandIters(FB);
         }
 
         long long treeUpp(const vector<pair<int, int> > &bound, const vector<int> &pos, const vector<int> &countRels) {

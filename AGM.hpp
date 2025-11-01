@@ -177,11 +177,22 @@ class Query{
 
         double AGM(vector<int> &cars){
             for (int i = 0; i < cars.size(); i++)if(cars[i] <= 0)return 0;
+            // if(true) { /////TPC-DS
+            //     double ans0 = sqrt((long long) cars[1] * cars[2]) * sqrt((long long) cars[3] * cars[4]);
+            //     return ans0;
+            //     // double ans1 = (double)cars[1] * cars[2],
+            //     //     // ans2 = sqrt((long long) cars[0] * cars[2]) * sqrt(cars[4]) * cars[1],
+            //     // ans2 = (double)cars[3] * cars[4];
+            //     // return min(ans0, min(ans1, ans2));
+            // }
+            // ///// Q_S
             // double ans0 = cbrt((double)cars[0] * cars[1] * cars[2]) * cbrt((double)cars[3] * cars[4] * cars[5]);
+            // return ans0;
             // double ans1 = (double)cars[1] * cars[2];
             // double ans2 = (double)cars[0] * cars[3];
             // double ans3 = (double)cars[4] * cars[5];
             // return min(ans1, min(ans2, ans3));
+            ////// Q_T
             if(true){
                 // return sqrt(cars[0]) * sqrt(cars[1]) * sqrt(cars[2]);
                 double ans0 = sqrt((long long) cars[0] * cars[1]) * sqrt(cars[2]);

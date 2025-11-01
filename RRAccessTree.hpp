@@ -456,7 +456,7 @@ private:
 
 public:
     long long AGM;
-    int cacheHeightBound = 18;
+    int cacheHeightBound = 20;//written by shell code
     RRAccessTreeNode* root = NULL;
     RRAccessTreeNode_Pool* root_pool = NULL;
     Index idx;

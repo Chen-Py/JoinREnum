@@ -23,7 +23,7 @@ class Enumerator {
 
 private:
 public:
-    int option = 6;
+    int option = 3;
     /*
         0: REnum,
         1: REnum_L(Larger),
