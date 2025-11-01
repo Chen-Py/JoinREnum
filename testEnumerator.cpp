@@ -29,6 +29,6 @@ int main() {
 
     Enumerator enumerator(relations, filenames, numlines);
     enumerator.random_enumerate();
-    printInfo(enumerator.access_tree.idx);
+    // printInfo(enumerator.access_tree.idx);
     return 0;
 }
